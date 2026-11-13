@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Inscripción al taller</title>
+<style>
+  :root {
+    --fondo: #e9eef3;
+    --papel: #ffffff;
+    --tinta: #1c2630;
+    --tinta-suave: #5a6775;
+    --linea: #cfd8e1;
+    --linea-hover: #9fb0bf;
+    --campo: #f8fafc;
+    --acento: #1f6f8b;
+    --acento-oscuro: #17556b;
+    --acento-claro: #e3f1f6;
+    --texto-acento: #ffffff;
+    --cabecera: #1f6f8b;
+    --pie: #f4f7fa;
+    --sombra: rgba(28, 38, 48, 0.12);
+    color-scheme: light;
+  }
+
+  :root[data-theme="dark"] {
+    --fondo: #0f161d;
+    --papel: #18222b;
+    --tinta: #e6edf3;
+    --tinta-suave: #9aa9b7;
+    --linea: #33414e;
+    --linea-hover: #566879;
+    --campo: #121b23;
+    --acento: #4fb3d1;
+    --acento-oscuro: #6cc4df;
+    --acento-claro: #1d3a47;
+    --texto-acento: #0c1a22;
+    --cabecera: #17556b;
+    --pie: #141d25;
+    --sombra: rgba(0, 0, 0, 0.5);
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+
+  body {
+    margin: 0;
+    padding: 40px 16px;
+    background: var(--fondo);
+    color: var(--tinta);
+    font-family: "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+    line-height: 1.5;
+    transition: background 0.2s, color 0.2s;
+  }
+
+  .formulario {
+    max-width: 860px;
+    margin: 0 auto;
+    background: var(--papel);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px var(--sombra);
+    transition: background 0.2s;
+  }
+
+  .cabecera {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+    padding: 36px 40px;
+    background: var(--cabecera);
+    color: #fff;
+  }
+  .cabecera h1 { margin: 0 0 6px; font-size: 1.9rem; letter-spacing: -0.01em; }
+  .cabecera p { margin: 0; opacity: 0.9; }
+
+  /* Selector de idioma y modo oscuro */
+  .tools { display: flex; gap: 8px; flex-shrink: 0; }
+  .tools select,
+  .tools button {
+    width: auto;
+    height: 40px;
+    padding: 0 12px;
+    font: inherit;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #fff;
+    background: rgba(255, 255, 255, 0.15);
+    border: 1.5px solid rgba(255, 255, 255, 0.4);
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  .tools select option { color: #1c2630; background: #fff; }
+  .tools select:hover,
+  .tools button:hover { background: rgba(255, 255, 255, 0.28); border-color: #fff; }
+  .tools select:focus-visible,
+  .tools button:focus-visible { outline: 3px solid #fff; outline-offset: 2px; box-shadow: none; background: rgba(255, 255, 255, 0.28); }
+  .tools button { width: 40px; padding: 0; font-size: 1.15rem; line-height: 1; }
+
+  /* Indicador de pasos */
+  .pasos {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 28px 40px 24px;
+    border-bottom: 1px solid var(--linea);
+  }
+  .pasos li {
+    position: relative;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    color: var(--tinta-suave);
+    text-align: center;
+  }
+  /* línea que une un paso con el siguiente */
+  .pasos li:not(:last-child)::after {
+    content: "";
+    position: absolute;
+    top: 17px;
+    left: calc(50% + 24px);
+    width: calc(100% - 48px);
+    height: 2px;
+    background: var(--linea);
+    transition: background 0.3s;
+  }
+  .pasos li.hecho:not(:last-child)::after { background: var(--acento); }
+
+  .paso-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 8px;
+    font: inherit;
+    color: inherit;
+    background: none;
+    border: 0;
+    border-radius: 10px;
+    cursor: pointer;
+  }
+  .paso-btn:hover .num { border-color: var(--acento); }
+  .paso-btn:hover { color: var(--tinta); }
+  .paso-btn:focus-visible { outline: 3px solid var(--acento); outline-offset: 2px; }
+
+  .pasos .num {
+    width: 36px;
+    height: 36px;
+    display: grid;
+    place-items: center;
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--tinta-suave);
+    background: var(--papel);
+    border: 2px solid var(--linea);
+    border-radius: 50%;
+    transition: background 0.2s, border-color 0.2s, color 0.2s;
+  }
+  .pasos li.activo { color: var(--tinta); font-weight: 600; }
+  .pasos li.activo .num { color: var(--texto-acento); background: var(--acento); border-color: var(--acento); }
+  .pasos li.hecho .num { color: var(--acento); background: var(--acento-claro); border-color: var(--acento); }
+
+  /* Cada paso: título a la izquierda, campos a la derecha */
+  .seccion {
+    display: none;
+    grid-template-columns: 240px 1fr;
+    gap: 32px;
+    padding: 32px 40px;
+    border: 0;
+    margin: 0;
+    min-width: 0;
+  }
+  .seccion.activa { display: grid; animation: entrar 0.25s ease-out; }
+  @keyframes entrar {
+    from { opacity: 0; transform: translateX(14px); }
+    to   { opacity: 1; transform: none; }
+  }
+  @media (prefers-reduced-motion: reduce) { .seccion.activa { animation: none; } }
+
+  .seccion .info h2 { margin: 0 0 6px; font-size: 1.15rem; }
+  .seccion .info p { margin: 0; font-size: 0.9rem; color: var(--tinta-suave); }
+
+  .campos {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+    align-content: start;
+  }
+  .completo { grid-column: 1 / -1; }
+
+  label, .etiqueta {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  input[type="date"],
+  select,
+  textarea {
+    width: 100%;
+    padding: 11px 13px;
+    font: inherit;
+    color: var(--tinta);
+    background: var(--campo);
+    border: 1.5px solid var(--linea);
+    border-radius: 8px;
+    transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+  }
+  textarea { resize: vertical; min-height: 110px; }
+  ::placeholder { color: var(--tinta-suave); opacity: 0.7; }
+
+  input:hover, select:hover, textarea:hover { border-color: var(--linea-hover); }
+
+  input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: var(--acento);
+    box-shadow: 0 0 0 4px var(--acento-claro);
+  }
+
+  /* Campos con error al intentar avanzar */
+  .intentado input:invalid,
+  .intentado select:invalid,
+  .intentado textarea:invalid { border-color: #d64545; }
+
+  /* Checkboxes */
+  .opciones { display: grid; gap: 10px; }
+  .opcion {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0;
+    padding: 11px 14px;
+    font-weight: 400;
+    border: 1.5px solid var(--linea);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .opcion:hover { border-color: var(--linea-hover); }
+  .opcion:has(input:checked) { border-color: var(--acento); background: var(--acento-claro); }
+
+  input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    accent-color: var(--acento);
+    cursor: pointer;
+  }
+  input[type="checkbox"]:focus-visible { outline: 3px solid var(--acento); outline-offset: 2px; }
+
+  .legal {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    font-weight: 400;
+    font-size: 0.9rem;
+    color: var(--tinta-suave);
+    cursor: pointer;
+  }
+  .legal input { margin-top: 2px; }
+
+  /* Pie con navegación */
+  .pie {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 24px 40px;
+    background: var(--pie);
+  }
+  .contador { font-size: 0.9rem; color: var(--tinta-suave); }
+  .botones { display: flex; gap: 12px; }
+  .pie button,
+  .exito button {
+    padding: 12px 26px;
+    font: inherit;
+    font-weight: 600;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .btn-principal { color: var(--texto-acento); background: var(--acento); border: 1.5px solid var(--acento); }
+  .btn-principal:hover { background: var(--acento-oscuro); border-color: var(--acento-oscuro); }
+  .btn-secundario { color: var(--tinta); background: transparent; border: 1.5px solid var(--linea); }
+  .btn-secundario:hover { border-color: var(--linea-hover); }
+  .pie button:focus-visible,
+  .exito button:focus-visible { outline: 3px solid var(--acento); outline-offset: 2px; }
+
+  /* Pantalla final */
+  .exito { padding: 64px 40px; text-align: center; }
+  .exito .check {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 20px;
+    display: grid;
+    place-items: center;
+    font-size: 2rem;
+    color: var(--texto-acento);
+    background: var(--acento);
+    border-radius: 50%;
+  }
+  .exito h2 { margin: 0 0 8px; font-size: 1.5rem; }
+  .exito p { margin: 0 auto 28px; max-width: 420px; color: var(--tinta-suave); }
+
+  /* Móvil */
+  @media (max-width: 700px) {
+    body { padding: 0; }
+    .formulario { border-radius: 0; }
+    .cabecera, .seccion, .pie, .exito { padding-left: 20px; padding-right: 20px; }
+    .cabecera { flex-direction: column; }
+    .pasos { padding: 20px 12px 16px; }
+    .pasos li span:not(.num) { display: none; }
+    .pasos li.activo span:not(.num) { display: block; position: absolute; top: 44px; white-space: nowrap; }
+    .pasos { padding-bottom: 40px; }
+    .seccion { grid-template-columns: 1fr; gap: 18px; }
+    .campos { grid-template-columns: 1fr; }
+    .pie { flex-direction: column-reverse; align-items: stretch; }
+    .botones { flex-direction: column-reverse; }
+    .pie button { width: 100%; }
+    .contador { text-align: center; }
+  }
+
+  label.opcion{
+    margin-bottom: 15px;
+  }
+</style>
+</head>
+<body>
+
+<form class="formulario" id="formulario" action="#" method="post" novalidate>
+
+  <header class="cabecera">
+    <div>
+      <h1>Procesamiento de video</h1>
+      <p>Se trata de un formulario para facilitar el procesamiento de videos.</p>
+    </div>
+    <div class="tools">
+      <select id="idioma" aria-label="Idioma / Language">
+        <option value="es">Español</option>
+        <option value="ca">Català</option>
+        <option value="en">English</option>
+      </select>
+      <button type="button" id="tema" data-label-to-dark="Cambiar a modo oscuro" data-label-to-light="Cambiar a modo claro"></button>
+    </div>
+  </header>
+
+  <!-- Indicador de pasos -->
+  <ol class="pasos" id="pasos">
+    <li><button type="button" class="paso-btn"><span class="num">1</span><span>Notificación</span></button></li>
+    <li><button type="button" class="paso-btn"><span class="num">2</span><span>Procesamiento</span></button></li>
+    <li><button type="button" class="paso-btn"><span class="num">3</span><span>Mensaje</span></button></li>
+    <!-- <li><button type="button" class="paso-btn"><span class="num">4</span><span>Final</span></button></li> -->
+  </ol>
+
+  <div id="contenido">
+
+    <!-- Paso 1: datos personales -->
+    <fieldset class="seccion">
+      <div class="info">
+        <h2>Notificación</h2>
+        <p>Especifica su nombre como emisor y a quien se dirige la notificación.</p>
+        <p>El mensaje se enviara a traves de watsapp.</p>
+      </div>
+      <div class="campos">
+        <div>
+          <label for="Emisor">Emisor</label>
+          <!-- <input type="text" id="Emisor" name="Emisor" placeholder="Laura" required> -->
+           <select id="Emisor" name="Emisor" required>
+            <option value="">Elige una opción</option>
+            <option value="Laura">Laura</option>
+            <option value="Juan">Juan</option>
+            <option value="María">María</option>
+            <option value="Pedro">Pedro</option>
+          </select>
+        </div>
+        <div>
+          <label for="Receptor">Receptor</label>
+          <!-- <input type="text" id="Receptor" name="Receptor" placeholder="García Soler" required> -->
+          <select id="Receptor" name="Receptor" required>
+            <option value="">Elige una opción</option>
+            <option value="Laura">Laura</option>
+            <option value="Juan">Juan</option>
+            <option value="María">María</option>
+            <option value="Pedro">Pedro</option>
+          </select>
+        </div>
+        <div>
+            <label class="opcion"><input type="checkbox" name="sesion" value="UploadYouTube"> <span>Subir directo a YouTube</span></label>
+            <label class="opcion"><input type="checkbox" name="sesion" value="ClosePC"> <span>Apagar PC</span></label>
+        </div>
+        <!-- <div>
+          <label for="ocupacion">Ocupación</label>
+          <select id="ocupacion" name="ocupacion">
+            <option value="">Elige una opción</option>
+            <option value="estudiante">Estudiante</option>
+            <option value="empleado">Trabajador/a por cuenta ajena</option>
+            <option value="autonomo">Autónomo/a</option>
+            <option value="desempleado">Desempleado/a</option>
+            <option value="otra">Otra</option>
+          </select>
+        </div> -->
+      </div>
+    </fieldset>
+
+    <!-- Paso 2: contacto -->
+    <fieldset class="seccion">
+      <div class="info">
+        <h2>Procesamiento</h2>
+        <p>Aqui se muestran los clips que se procesarán.</p>
+        <p>Aqui se puede modificar las propiedades de los clips.</p>
+      </div>
+      <div class="campos">
+
+        
+
+
+        <!-- <div>
+          <label for="email">Correo electrónico</label>
+          <input type="email" id="email" name="email" placeholder="laura@ejemplo.com" required>
+        </div>
+        <div>
+          <label for="telefono">Teléfono</label>
+          <input type="tel" id="telefono" name="telefono" placeholder="600 123 456">
+        </div>
+        <div class="completo">
+          <label for="direccion">Dirección</label>
+          <input type="text" id="direccion" name="direccion" placeholder="Calle, número, piso">
+        </div>
+        <div>
+          <label for="ciudad">Ciudad</label>
+          <input type="text" id="ciudad" name="ciudad">
+        </div>
+        <div>
+          <label for="pais">País</label>
+          <select id="pais" name="pais">
+            <option value="es">España</option>
+            <option value="ad">Andorra</option>
+            <option value="fr">Francia</option>
+            <option value="pt">Portugal</option>
+            <option value="otro">Otro</option>
+          </select>
+        </div> -->
+      </div>
+    </fieldset>
+
+    <!-- Paso 3: preferencias -->
+    <fieldset class="seccion">
+      <div class="info">
+        <h2>Opciones de mensaje</h2>
+        <!-- <p>Elige a qué sesiones quieres venir.</p> -->
+      </div>
+      <div class="campos">
+        <div class="completo">
+          <label for="nivel">Tu nivel</label>
+          <select id="nivel" name="nivel">
+            <option value="">Elige una opción</option>
+            <option value="1">Principiante</option>
+            <option value="2">Intermedio</option>
+            <option value="3">Avanzado</option>
+          </select>
+        </div>
+        <div class="completo">
+          <span class="etiqueta">Sesiones de interés</span>
+          <div class="opciones">
+            <label class="opcion"><input type="checkbox" name="sesion" value="manana"> <span>Sesión de mañana (10:00 – 13:00)</span></label>
+            <label class="opcion"><input type="checkbox" name="sesion" value="tarde"> <span>Sesión de tarde (16:00 – 19:00)</span></label>
+            <label class="opcion"><input type="checkbox" name="sesion" value="online"> <span>Seguimiento en línea</span></label>
+          </div>
+        </div>
+      </div>
+    </fieldset>
+
+    <!-- Paso 4: comentarios y envío -->
+    <!-- <fieldset class="seccion">
+      <div class="info">
+        <h2>Para terminar</h2>
+        <p>Cuéntanos lo que quieras y confirma las condiciones.</p>
+      </div>
+      <div class="campos">
+        <div class="completo">
+          <label for="comentarios">Comentarios</label>
+          <textarea id="comentarios" name="comentarios" placeholder="Alergias, necesidades de accesibilidad, dudas…"></textarea>
+        </div>
+        <div class="completo">
+          <label class="legal">
+            <input type="checkbox" name="novedades">
+            <span>Quiero recibir novedades de próximos talleres.</span>
+          </label>
+        </div>
+        <div class="completo">
+          <label class="legal">
+            <input type="checkbox" name="privacidad" required>
+            <span>He leído y acepto la política de privacidad.</span>
+          </label>
+        </div>
+      </div>
+    </fieldset> -->
+
+  </div>
+
+  <div class="pie" id="pie">
+    <span class="contador" id="contador" aria-live="polite" data-template="Paso {n} de {total}"></span>
+    <div class="botones">
+      <button type="button" class="btn-secundario" id="atras">Atrás</button>
+      <button type="button" class="btn-principal" id="siguiente">Siguiente</button>
+      <button type="submit" class="btn-principal" id="enviar">Renderizar</button>
+    </div>
+  </div>
+
+  <!-- Pantalla final -->
+  <div class="exito" id="exito" hidden>
+    <div class="check" aria-hidden="true">✓</div>
+    <h2>¡Inscripción enviada!</h2>
+    <p>Hemos recibido tus datos. Te escribiremos pronto para confirmar tu plaza.</p>
+    <button type="button" class="btn-secundario" id="otra">Nueva inscripción</button>
+  </div>
+
+</form>
+
+<script>
+  const root = document.documentElement;
+  const form = document.getElementById("formulario");
+  const btnTema = document.getElementById("tema");
+
+  const guardar = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
+  const leer = k => { try { return localStorage.getItem(k); } catch (e) { return null; } };
+
+  // ---------- Tema ----------
+  function aplicarTema(tema) {
+    root.dataset.theme = tema;
+    guardar("tema", tema);
+    actualizarBotonTema();
+  }
+  function actualizarBotonTema() {
+    const oscuro = root.dataset.theme === "dark";
+    const etiqueta = oscuro ? btnTema.dataset.labelToLight : btnTema.dataset.labelToDark;
+    btnTema.textContent = oscuro ? "☀" : "☾";
+    btnTema.setAttribute("aria-label", etiqueta);
+    btnTema.title = etiqueta;
+  }
+
+  btnTema.addEventListener("click", () => aplicarTema(root.dataset.theme === "dark" ? "light" : "dark"));
+
+  // ---------- Pasos ----------
+  const secciones = [...document.querySelectorAll(".seccion")];
+  const indicadores = [...document.querySelectorAll("#pasos li")];
+  const btnAtras = document.getElementById("atras");
+  const btnSiguiente = document.getElementById("siguiente");
+  const btnEnviar = document.getElementById("enviar");
+  const contador = document.getElementById("contador");
+  let paso = 0;
+
+  function actualizarContador() {
+    contador.textContent = contador.dataset.template
+      .replace("{n}", paso + 1).replace("{total}", secciones.length);
+  }
+
+  function mostrarPaso(n) {
+    paso = n;
+    secciones.forEach((s, i) => s.classList.toggle("activa", i === n));
+    indicadores.forEach((li, i) => {
+      li.classList.toggle("activo", i === n);
+      li.classList.toggle("hecho", i < n);
+      const b = li.querySelector("button");
+      if (i === n) b.setAttribute("aria-current", "step"); else b.removeAttribute("aria-current");
+      li.querySelector(".num").textContent = i < n ? "✓" : i + 1;
+    });
+    btnAtras.hidden = n === 0;
+    btnSiguiente.hidden = n === secciones.length - 1;
+    btnEnviar.hidden = n !== secciones.length - 1;
+    actualizarContador();
+    if (form.getBoundingClientRect().top < 0) form.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  // Valida los campos de un paso; si hay error, avisa en el primero que falle
+  function validarPaso(n) {
+    secciones[n].classList.add("intentado");
+    const invalido = [...secciones[n].querySelectorAll("input, select, textarea")].find(c => !c.checkValidity());
+    if (invalido) { invalido.reportValidity(); return false; }
+    return true;
+  }
+
+  btnSiguiente.addEventListener("click", () => { if (validarPaso(paso)) mostrarPaso(paso + 1); });
+  btnAtras.addEventListener("click", () => mostrarPaso(paso - 1));
+
+  // Migas de pan: volver atrás es libre; avanzar exige validar los pasos intermedios
+  indicadores.forEach((li, destino) => {
+    li.querySelector("button").addEventListener("click", () => {
+      if (destino <= paso) { mostrarPaso(destino); return; }
+      for (let i = paso; i < destino; i++) {
+        if (!validarPaso(i)) { mostrarPaso(i); validarPaso(i); return; }
+      }
+      mostrarPaso(destino);
+    });
+  });
+
+  form.addEventListener("submit", e => {
+    e.preventDefault();
+    // Enter en un paso intermedio = Siguiente
+    if (paso < secciones.length - 1) { btnSiguiente.click(); return; }
+    // Comprobar todos los pasos antes de enviar
+    for (let i = 0; i < secciones.length; i++) {
+      if (!validarPaso(i)) { mostrarPaso(i); validarPaso(i); return; }
+    }
+    // Aquí iría el envío real (fetch, etc.)
+    document.getElementById("contenido").hidden = true;
+    document.getElementById("pasos").hidden = true;
+    document.getElementById("pie").hidden = true;
+    document.getElementById("exito").hidden = false;
+  });
+
+  document.getElementById("otra").addEventListener("click", () => {
+    form.reset();
+    secciones.forEach(s => s.classList.remove("intentado"));
+    document.getElementById("exito").hidden = true;
+    document.getElementById("contenido").hidden = false;
+    document.getElementById("pasos").hidden = false;
+    document.getElementById("pie").hidden = false;
+    mostrarPaso(0);
+  });
+
+  // ---------- Valores iniciales ----------
+  aplicarTema(leer("tema") || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"));
+  mostrarPaso(0);
+</script>
+
+</body>
+</html>

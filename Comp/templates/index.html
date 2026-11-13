@@ -1,0 +1,20 @@
+<!-- <!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Mi Página con Flask</title>
+</head>
+<body>
+    <h1>¡Hola desde un archivo HTML real!</h1>
+    <p>Este archivo se está renderizando desde la carpeta templates.</p>
+</body>
+</html> -->
+
+<!doctype html>
+<title>Hello from Flask</title>
+{% if person %}
+  <h1>Hello {{ person.name }}!</h1>
+  <h1>Age {{ person.age }}!</h1>
+{% else %}
+  <h1>Hello, World!</h1>
+{% endif %}
