@@ -393,6 +393,7 @@ def upload_video(
     visibilidad="PRIVATE",
     espera_subida_min=60,
 ):
+    print("subiendo video")
     ruta = Path(ruta_video)
     if not ruta.is_absolute():
         ruta = (DIR_SCRIPT / ruta).resolve()
