@@ -1,7 +1,25 @@
-
+import os
+import sys
 from dataclasses import asdict
 import json
 from pathlib import Path
+
+# --- Bootstrap del API de scripts de Resolve --------------------------------
+# Permite ejecutar este servidor con un Python EXTERNO (fuera de Resolve).
+# `DaVinciResolveScript` necesita encontrar su módulo y la librería
+# `fusionscript.dll`; dentro de Resolve eso ya viene configurado, fuera no.
+_API_RESOLVE = Path(os.environ.get(
+    "RESOLVE_SCRIPT_API",
+    r"C:\ProgramData\Blackmagic Design\DaVinci Resolve\Support\Developer\Scripting",
+))
+_MODULOS_RESOLVE = _API_RESOLVE / "Modules"
+if _MODULOS_RESOLVE.is_dir() and str(_MODULOS_RESOLVE) not in sys.path:
+    sys.path.insert(0, str(_MODULOS_RESOLVE))
+os.environ.setdefault("RESOLVE_SCRIPT_API", str(_API_RESOLVE))
+os.environ.setdefault(
+    "RESOLVE_SCRIPT_LIB",
+    r"C:\Program Files\Blackmagic Design\DaVinci Resolve\fusionscript.dll",
+)
 
 from flask import Flask,render_template, request
 import webbrowser
@@ -13,6 +31,12 @@ import DaVinciResolveScript as dvr_script
 app = Flask(__name__)
 
 clips, groups, jobs_ids = [], [], []
+
+
+@app.get('/health')
+def health():
+    """Comprobación rápida usada por trigger.py (no toca Resolve)."""
+    return "ok"
 
 
 def ruta_render(carpeta, nombre):
@@ -98,5 +122,14 @@ def render_form():
 
 # 3. Ejecutar el servidor si el archivo se corre directamente.
 if __name__ == "__main__":
-    # webbrowser.open("http://localhost:5000/")  # Abrir automáticamente en el navegador
-    app.run(debug=True)
+    # Normalmente lo lanza `trigger.py`, que además abre el navegador.
+    # Si se ejecuta form.py a mano, abrimos el navegador tras un pequeño margen
+    # para que el servidor ya esté escuchando (si no, da "conexión rechazada").
+    if os.environ.get("FORM_ABRIR_NAVEGADOR", "1") == "1":
+        import threading
+
+        threading.Timer(1.0, lambda: webbrowser.open("http://127.0.0.1:5050/")).start()
+
+    # debug=False + use_reloader=False: con el recargador se lanzan dos procesos
+    # y, al ejecutarlo de forma desacoplada, quedarían servidores huérfanos.
+    app.run(host="127.0.0.1", port=5050, debug=False, use_reloader=False, threaded=True)
