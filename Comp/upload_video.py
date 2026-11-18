@@ -15,8 +15,10 @@ cierra el script y abre Chrome con el mismo perfil:
 Inicia sesión ahí, cierra Chrome y vuelve a ejecutar el script.
 """
 
+import os
 import re
 import sys
+import tempfile
 import time
 from pathlib import Path
 
@@ -358,11 +360,127 @@ def _esperar_boton_publicar(page, timeout_min=10):
     raise TimeoutError("El botón para publicar no se habilitó a tiempo.")
 
 
+# Al elegir PUBLIC o UNLISTED, YouTube muestra un aviso que recomienda dejar el
+# vídeo en privado y guarda el vídeo como borrador si no se confirma.
+_BOTONES_CONFIRMAR_AVISO = [
+    "ytcp-confirmation-dialog #confirm-button button",
+    "ytcp-confirmation-dialog #confirm-button",
+    "ytcp-dialog #confirm-button button",
+    "ytcp-dialog #confirm-button",
+    "tp-yt-paper-dialog #confirm-button button",
+    "tp-yt-paper-dialog #confirm-button",
+    "button:has-text('Publicar de todas formas')",
+    "button:has-text('Publicar de todos modos')",
+    "button:has-text('Publicar igualmente')",
+    "button:has-text('Publish anyway')",
+    "button:has-text('Publicar ahora')",
+    "button:has-text('Publish now')",
+]
+
+_CLAVES_CONFIRMAR = (
+    "de todas formas",
+    "de todos modos",
+    "igualmente",
+    "anyway",
+    "publicar",
+    "publish",
+    "continuar",
+    "continue",
+)
+
+_CLAVES_CANCELAR = ("descartar", "discard", "cancelar", "cancel", "volver", "revisar")
+
+
+def _boton_habilitado(boton):
+    """True si el botón (o el <button> que contiene) se puede pulsar."""
+    try:
+        deshabilitado = boton.evaluate(
+            """el => {
+                const objetivo = el.matches('button') ? el : el.querySelector('button');
+                if (!objetivo) {
+                    return el.hasAttribute('disabled') ||
+                        el.getAttribute('aria-disabled') === 'true';
+                }
+                return objetivo.disabled ||
+                    objetivo.getAttribute('aria-disabled') === 'true';
+            }"""
+        )
+        return not deshabilitado
+    except Exception:
+        return True
+
+
+def _buscar_boton_confirmar(page):
+    """Devuelve el botón 'Publicar de todas formas' del aviso, si está visible."""
+    for selector in _BOTONES_CONFIRMAR_AVISO:
+        try:
+            locator = page.locator(selector)
+            total = min(locator.count(), 5)
+        except Exception:
+            continue
+
+        for indice in range(total):
+            boton = locator.nth(indice)
+            try:
+                if not boton.is_visible():
+                    continue
+                texto = (boton.inner_text() or "").strip().lower()
+                if any(clave in texto for clave in _CLAVES_CANCELAR):
+                    continue
+                if not any(clave in texto for clave in _CLAVES_CONFIRMAR):
+                    continue
+                if not _boton_habilitado(boton):
+                    continue
+                return boton
+            except Exception:
+                continue
+
+    return None
+
+
+def _confirmar_aviso_publicacion(page, timeout_ms=20000):
+    """Acepta el aviso que recomienda publicar en privado ('Publicar de todas formas').
+
+    Devuelve True si se llegó a pulsar alguna confirmación.
+    """
+    limite = time.time() + timeout_ms / 1000
+    pulsado = False
+
+    while time.time() < limite:
+        # Si ya apareció el diálogo final, no hay aviso pendiente.
+        try:
+            if page.locator("ytcp-video-share-dialog").first.is_visible():
+                return pulsado
+        except Exception:
+            pass
+
+        boton = _buscar_boton_confirmar(page)
+        if boton is None:
+            page.wait_for_timeout(500)
+            continue
+
+        try:
+            boton.scroll_into_view_if_needed()
+            boton.click()
+            pulsado = True
+            _log(
+                "⚠️  YouTube recomendaba publicar en privado; "
+                "se pulsa 'Publicar de todas formas'."
+            )
+            page.wait_for_timeout(1000)
+        except Exception:
+            page.wait_for_timeout(500)
+
+    return pulsado
+
+
 def _publicar(page):
     _log("Publicando el vídeo...")
     boton = _esperar_boton_publicar(page)
     boton.scroll_into_view_if_needed()
     boton.click()
+
+    _confirmar_aviso_publicacion(page)
 
     video_id = None
     try:
@@ -386,12 +504,120 @@ def _publicar(page):
     return video_id
 
 
+def _preparar_miniatura(miniatura):
+    """Acepta bytes, str o Path y devuelve (ruta, es_temporal).
+
+    Los bytes (como los que guarda el formulario de Flet) se escriben en un
+    archivo temporal para poder pasárselos al input de YouTube Studio.
+    """
+    if not miniatura:
+        return None, False
+
+    if isinstance(miniatura, (bytes, bytearray)):
+        datos = bytes(miniatura)
+        if datos.startswith(b"\x89PNG"):
+            sufijo = ".png"
+        elif datos.startswith(b"\xff\xd8"):
+            sufijo = ".jpg"
+        elif datos[:4] == b"RIFF" and datos[8:12] == b"WEBP":
+            sufijo = ".webp"
+        elif datos.startswith(b"GIF8"):
+            sufijo = ".gif"
+        elif datos.startswith(b"BM"):
+            sufijo = ".bmp"
+        else:
+            sufijo = ".png"
+
+        descriptor, nombre = tempfile.mkstemp(prefix="miniatura_", suffix=sufijo)
+        os.close(descriptor)
+        archivo = Path(nombre)
+        archivo.write_bytes(datos)
+        return archivo, True
+
+    ruta = Path(miniatura)
+    if not ruta.is_absolute():
+        ruta = (DIR_SCRIPT / ruta).resolve()
+    if not ruta.is_file():
+        raise FileNotFoundError(f"No existe el archivo de miniatura: {ruta}")
+    return ruta, False
+
+
+def _subir_miniatura(page, ruta, timeout_ms=120000):
+    """Sube la miniatura en la pestaña de detalles y comprueba que se aplicó."""
+    _log(f"Subiendo miniatura: {ruta.name}")
+
+    selectores = [
+        "ytcp-thumbnail-uploader input#file-loader",
+        "ytcp-thumbnail-uploader input[type='file']",
+        "input#file-loader[type='file']",
+    ]
+
+    entrada = None
+    limite = time.time() + timeout_ms / 1000
+    while time.time() < limite and entrada is None:
+        for selector in selectores:
+            try:
+                locator = page.locator(selector).first
+                if locator.count() > 0:
+                    entrada = locator
+                    break
+            except Exception:
+                continue
+        if entrada is None:
+            page.wait_for_timeout(500)
+
+    if entrada is None:
+        _log("⚠️  No se encontró el selector de miniatura; se publica sin ella.")
+        return False
+
+    try:
+        entrada.set_input_files(str(ruta))
+    except Exception as exc:
+        _log(f"⚠️  No se pudo subir la miniatura ({exc}); se publica sin ella.")
+        return False
+
+    # YouTube tarda unos segundos en procesar la imagen; si la rechaza,
+    # muestra el motivo dentro del propio cargador de miniaturas.
+    limite = time.time() + 30
+    while time.time() < limite:
+        try:
+            estado = page.evaluate(
+                """() => {
+                    const caja = document.querySelector('ytcp-thumbnail-uploader');
+                    if (!caja) return { error: '', aplicada: false };
+                    const error = caja.querySelector('.error, .thumbnail-error, #error');
+                    const img = caja.querySelector('img#image, img.thumbnail-image');
+                    const src = img ? (img.getAttribute('src') || '') : '';
+                    return {
+                        error: error ? (error.innerText || '').trim() : '',
+                        aplicada: !!src && !/^data:image\\/gif/.test(src)
+                    };
+                }"""
+            )
+        except Exception:
+            estado = {"error": "", "aplicada": False}
+
+        if estado["error"]:
+            _log(f"⚠️  YouTube rechazó la miniatura: {estado['error']}")
+            return False
+
+        if estado["aplicada"]:
+            _log("Miniatura aplicada.")
+            return True
+
+        page.wait_for_timeout(500)
+
+    _log("⚠️  No se pudo confirmar la miniatura; se publica de todas formas.")
+    return False
+
+
 def upload_video(
     ruta_video,
     titulo,
     descripcion="",
     visibilidad="PRIVATE",
     espera_subida_min=60,
+    miniatura=None,
 ):
     print("subiendo video")
     ruta = Path(ruta_video)
@@ -414,6 +640,10 @@ def upload_video(
         raise ValueError("La descripción supera los 5000 caracteres que permite YouTube.")
     if "<" in titulo or ">" in titulo or "<" in descripcion or ">" in descripcion:
         raise ValueError("YouTube no permite los caracteres '<' ni '>' en título/descripción.")
+
+    ruta_miniatura, miniatura_temporal = _preparar_miniatura(miniatura)
+    if ruta_miniatura is not None and ruta_miniatura.stat().st_size > 2 * 1024 * 1024:
+        _log("⚠️  La miniatura supera los 2 MB que admite YouTube; puede que la rechace.")
 
     video_id = None
 
@@ -449,6 +679,9 @@ def upload_video(
                 descripcion_box = page.locator("#textbox").nth(1)
             _escribir_en_caja(page, descripcion_box, descripcion)
 
+            if ruta_miniatura is not None:
+                _subir_miniatura(page, ruta_miniatura)
+
             # El ID aparece en el panel derecho en cuanto arranca la subida.
             try:
                 video_id = _obtener_video_id(page, timeout_ms=60000)
@@ -471,6 +704,11 @@ def upload_video(
             _log("✅ ¡Proceso finalizado con éxito!")
         finally:
             contexto.close()
+            if miniatura_temporal and ruta_miniatura is not None:
+                try:
+                    ruta_miniatura.unlink()
+                except OSError:
+                    pass
 
     return video_id
 
