@@ -8,6 +8,7 @@ Debe estar junto a test.py y upload_video.py (se reutilizan tal cual).
 import asyncio
 import os
 import sys
+import json
 from dataclasses import asdict
 from pathlib import Path
 
@@ -44,6 +45,9 @@ MARGEN = 24            # espacio entre la tarjeta y el borde de la ventana
 VENTANA_COMPACTA = 600  # por debajo de este ancho la tarjeta ocupa toda la ventana
 
 EXTENSIONES_IMG = {".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp"}
+
+DIR_SCRIPT = Path(__file__).resolve().parent
+PLANTILLA_CONFIG = DIR_SCRIPT / "settings_layout.json"
 
 
 # ---------------------------------------------------------------------------
@@ -110,6 +114,58 @@ def trabajo_render(a_renderizar, subir_youtube, apagar_pc) -> str:
 
 # ---------------------------------------------------------------------------
 async def main(page: ft.Page):
+    ruta_datos = os.getenv("FLET_APP_STORAGE_DATA", ".")
+    os.makedirs(ruta_datos, exist_ok=True)
+
+    archivo_config = os.path.join(ruta_datos, "settings.json")
+
+    def guardar_json(datos: dict):
+        with open(archivo_config, "w", encoding="utf-8") as f:
+            json.dump(datos, f, indent=4, ensure_ascii=False)
+
+    def leer_json() -> dict:
+        if os.path.exists(archivo_config):
+            with open(archivo_config, "r", encoding="utf-8") as f:
+                return json.load(f)
+        return {}
+
+    def leer_plantilla() -> dict:
+        with open(PLANTILLA_CONFIG, "r", encoding="utf-8") as f:
+            return json.load(f)
+
+    def combinar(plantilla, datos):
+        """Rellena la plantilla con los datos guardados, sin añadir claves nuevas."""
+        if isinstance(plantilla, dict):
+            guardados = datos if isinstance(datos, dict) else {}
+            return {clave: combinar(valor, guardados.get(clave))
+                    for clave, valor in plantilla.items()}
+        if isinstance(plantilla, bool):
+            return bool(datos)
+        if isinstance(plantilla, str):
+            return datos if isinstance(datos, str) else plantilla
+        return plantilla
+
+    def cargar_config() -> dict:
+        """Lee settings.json; si no existe lo crea a partir de settings_layout.json."""
+        try:
+            plantilla = leer_plantilla()
+        except (OSError, json.JSONDecodeError) as ex:
+            print(f"No se pudo leer la plantilla {PLANTILLA_CONFIG}: {ex}")
+            return {}
+
+        if not os.path.exists(archivo_config):
+            try:
+                guardar_json(plantilla)
+            except OSError as ex:
+                print(f"No se pudo crear {archivo_config}: {ex}")
+            return plantilla
+
+        try:
+            return combinar(plantilla, leer_json())
+        except (OSError, json.JSONDecodeError) as ex:
+            print(f"settings.json no es válido ({ex}); se usa la plantilla.")
+            return plantilla
+
     page.title = "Procesamiento de video"
     page.theme_mode = ft.ThemeMode.LIGHT
     page.theme = ft.Theme(color_scheme_seed=ACENTO)
@@ -121,6 +177,8 @@ async def main(page: ft.Page):
 
     clips: list[dict] = []
     estado = {"paso": 0}
+    # Preferencias de vídeo que no se editan en un campo del formulario.
+    prefs = {"thumbnail_path": "", "destiny_dir": ""}
     selector = ft.FilePicker()  # servicio: se mantiene la referencia
 
     # ------------------------------------------------------------------ Paso 1
@@ -132,6 +190,7 @@ async def main(page: ft.Page):
     sesion_mia = ft.Checkbox(label="La sesión me pertenece.")
     idioma_msj = ft.Dropdown(label="Idioma del mensaje", value="es",
                              options=[ft.DropdownOption(key=k, text=v) for k, v in IDIOMAS])
+    guardar_prefs = ft.Checkbox(label="Guardar preferencias para el próximo formulario")
 
     paso1 = ft.Column(
         [
@@ -143,6 +202,7 @@ async def main(page: ft.Page):
             observacion,
             sesion_mia,
             idioma_msj,
+            guardar_prefs,
         ],
         spacing=16,
     )
@@ -184,11 +244,65 @@ async def main(page: ft.Page):
             duration=8000,
         ))
 
+    def persona_valida(valor):
+        return valor if valor in PERSONAS else None
+
+    def idioma_valido(valor):
+        return valor if valor in {clave for clave, _ in IDIOMAS} else "es"
+
+    def aplicar_config(datos: dict):
+        """Vuelca settings.json sobre los campos del formulario."""
+        emisor.value = persona_valida(datos.get("Emiter"))
+        receptor.value = persona_valida(datos.get("Receiver"))
+        sesion_mia.value = bool(datos.get("sesions_belonging"))
+        subir_yt.value = bool(datos.get("upload_youtube"))
+        idioma_msj.value = idioma_valido(datos.get("message_language"))
+        video = datos.get("video_config")
+        video = video if isinstance(video, dict) else {}
+        prefs["thumbnail_path"] = str(video.get("thumbnail") or "")
+        prefs["destiny_dir"] = str(video.get("destiny_dir") or "")
+        page.update()
+
+    def preferencias_actuales() -> dict:
+        """Construye el JSON con los mismos campos que settings_layout.json."""
+        destino = prefs.get("destiny_dir") or ""
+        if not destino and clips:
+            destino = clips[0]["settings"].get("TargetDir", "")
+        return {
+            "Emiter": emisor.value or "",
+            "Receiver": receptor.value or "",
+            "upload_youtube": bool(subir_yt.value),
+            "sesions_belonging": bool(sesion_mia.value),
+            "message_language": idioma_msj.value or "",
+            "video_config": {
+                "thumbnail": prefs.get("thumbnail_path", ""),
+                "destiny_dir": destino or "",
+            },
+        }
+
+    def aplicar_config_video():
+        """Aplica carpeta de destino y miniatura guardadas a los clips cargados."""
+        destino = prefs.get("destiny_dir") or ""
+        if destino:
+            for clip in clips:
+                clip["settings"]["TargetDir"] = destino
+
+        ruta_miniatura = prefs.get("thumbnail_path") or ""
+        if ruta_miniatura:
+            try:
+                datos = Path(ruta_miniatura).read_bytes()
+            except OSError:
+                datos = b""
+            if datos:
+                for clip in clips:
+                    clip["thumbnail"] = datos
+
     async def cargar_clips():
         clips.clear()
         error_carga.visible = False
         try:
             clips.extend(await asyncio.to_thread(leer_resolve))
+            aplicar_config_video()
         except BaseException as ex:  # init_davinci_project puede llamar a exit(0)
             error_carga.value = f"No se pudo leer DaVinci Resolve: {ex or 'sin conexión'}"
             error_carga.visible = True
@@ -284,7 +398,7 @@ async def main(page: ft.Page):
 
     # ----------------------------------------------------- Diálogo: miniatura
     async def abrir_miniatura(clip):
-        elegida = {"bytes": b""}
+        elegida = {"bytes": b"", "ruta": ""}
         error = ft.Text(color=ft.Colors.ERROR, visible=False, size=12)
         nombre = ft.Text("Ningún archivo seleccionado", size=12,
                          color=ft.Colors.ON_SURFACE_VARIANT)
@@ -308,6 +422,7 @@ async def main(page: ft.Page):
                 file_type=ft.FilePickerFileType.IMAGE, allow_multiple=False)
             error.visible = False
             elegida["bytes"] = b""
+            elegida["ruta"] = ""
             nueva.content = sin_imagen()
             if archivos:
                 ruta = Path(archivos[0].path) if archivos[0].path else None
@@ -317,6 +432,7 @@ async def main(page: ft.Page):
                     error.value, error.visible = "La imagen es demasiado grande (máximo 2 MB).", True
                 else:
                     elegida["bytes"] = ruta.read_bytes()
+                    elegida["ruta"] = str(ruta)
                     nombre.value = ruta.name
                     nueva.content = ft.Image(src=elegida["bytes"], fit=ft.BoxFit.COVER,
                                              width=200, height=112)
@@ -329,14 +445,18 @@ async def main(page: ft.Page):
                 return
             destinos = list(clips) if todos.value else [clip]
             anteriores = [c["thumbnail"] for c in destinos]
+            ruta_anterior = prefs.get("thumbnail_path", "")
             for c in destinos:
                 c["thumbnail"] = elegida["bytes"]
+            if elegida["ruta"]:
+                prefs["thumbnail_path"] = elegida["ruta"]
             page.pop_dialog()
             pintar_clips()
 
             def deshacer():
                 for c, t in zip(destinos, anteriores):
                     c["thumbnail"] = t
+                prefs["thumbnail_path"] = ruta_anterior
                 pintar_clips()
 
             aviso(f"Miniatura aplicada a {len(destinos)} clips." if len(destinos) > 1
@@ -430,6 +550,7 @@ async def main(page: ft.Page):
                 "ExportVideo": bool(video.value), "ExportAudio": bool(audio.value),
             })
             clip["start"], clip["end"] = inicio, fin
+            prefs["destiny_dir"] = s.get("TargetDir", "")
             page.pop_dialog()
             pintar_clips()
 
@@ -457,6 +578,15 @@ async def main(page: ft.Page):
             aviso("No hay clips que renderizar.")
             return
 
+        if guardar_prefs.value:
+            try:
+                datos = preferencias_actuales()
+                guardar_json(datos)
+                prefs["thumbnail_path"] = datos["video_config"]["thumbnail"]
+                prefs["destiny_dir"] = datos["video_config"]["destiny_dir"]
+            except OSError as ex:
+                aviso(f"No se pudieron guardar las preferencias: {ex}")
+
         # Copia de lo que hay ahora mismo en pantalla
         a_renderizar = [dict(c, settings=dict(c["settings"])) for c in clips]
         print("Emisor:", emisor.value, "| Receptor:", receptor.value,
@@ -480,10 +610,9 @@ async def main(page: ft.Page):
     def mostrar_resultado(mensaje_error):
         async def otra(e):
             page.pop_dialog()
-            emisor.value = receptor.value = None
+            aplicar_config(cargar_config())
             observacion.value = ""
-            sesion_mia.value = subir_yt.value = apagar_pc.value = False
-            idioma_msj.value = "es"
+            apagar_pc.value = False
             mostrar_paso(0)
             await cargar_clips()
 
@@ -627,6 +756,7 @@ async def main(page: ft.Page):
     page.add(marco)
     adaptar()
 
+    aplicar_config(cargar_config())
     mostrar_paso(0)
     await cargar_clips()
 
