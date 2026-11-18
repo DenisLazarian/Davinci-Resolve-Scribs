@@ -1,0 +1,11 @@
+{
+    "Emiter": "",
+    "Receiver": "",
+    "upload_youtube": false,
+    "sesions_belonging": false,
+    "message_language": "",
+    "video_config":{
+        "thumbnail": "",
+        "destiny_dir": ""
+    }
+}

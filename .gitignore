@@ -1,0 +1,16 @@
+
+**/__pycache__/**
+
+**/perfil_*/**
+
+
+.vscode/**
+
+.venv/**
+
+**/*.log
+
+settings.json
+
+con*.json
+
