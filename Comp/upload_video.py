@@ -48,7 +48,7 @@ def _log(mensaje):
     print(mensaje, flush=True)
 
 
-def _primer_visible(page, selectores, timeout_ms=30000, descripcion="el elemento"):
+def _primer_visible(page, selectores, timeout_ms=30000, descripcion="the element"):
     """Espera y devuelve el primer locator visible de una lista de selectores."""
     limite = time.time() + timeout_ms / 1000
     ultimo_error = None
@@ -64,11 +64,11 @@ def _primer_visible(page, selectores, timeout_ms=30000, descripcion="el elemento
         page.wait_for_timeout(250)
 
     raise PlaywrightTimeoutError(
-        f"No se encontró {descripcion}. Selectores probados: " + ", ".join(selectores)
+        f"Could not find {descripcion}. Selectors tried: " + ", ".join(selectores)
     ) from ultimo_error
 
 
-def _clic_primer_visible(page, selectores, timeout_ms=30000, descripcion="el elemento"):
+def _clic_primer_visible(page, selectores, timeout_ms=30000, descripcion="the element"):
     locator = _primer_visible(page, selectores, timeout_ms, descripcion)
     locator.scroll_into_view_if_needed()
     locator.click()
@@ -94,21 +94,21 @@ def _abrir_navegador(p):
                     "--hide-crash-restore-bubble",
                 ],
             )
-            _log(f"Navegador abierto: {canal}")
+            _log(f"Browser opened: {canal}")
             return contexto
         except Exception as exc:
             errores.append(f"{canal}: {exc}")
 
     raise RuntimeError(
-        "No se pudo abrir ningún navegador. ¿Está Chrome ya abierto usando la "
-        "carpeta 'perfil_youtube'? Ciérralo y vuelve a intentarlo.\n"
+        "Could not open any browser. Is Chrome already open using the "
+        "'perfil_youtube' folder? Close it and try again.\n"
         + "\n".join(errores)
     )
 
 
 def _asegurar_sesion(page):
     """Entra en Studio y, si hace falta, pide al usuario que inicie sesión."""
-    _log("Abriendo YouTube Studio...")
+    _log("Opening YouTube Studio...")
     page.goto(STUDIO_URL, wait_until="domcontentloaded", timeout=120000)
     page.wait_for_timeout(20000)
 
@@ -120,7 +120,7 @@ def _asegurar_sesion(page):
                     state="visible",
                     timeout=60000,
                 )
-                _log("Sesión iniciada correctamente.")
+                _log("Signed in successfully.")
                 return
             except PlaywrightTimeoutError:
                 # Puede que el botón tarde, pero si no hay botón de "Iniciar sesión"
@@ -129,24 +129,24 @@ def _asegurar_sesion(page):
                     'a[href*="ServiceLogin"], ytcp-button#sign-in-button, '
                     'ytcp-button-shape#sign-in-button'
                 ).count() == 0:
-                    _log("Sesión detectada.")
+                    _log("Session detected.")
                     return
 
         _log("")
-        _log("⚠️  No hay sesión iniciada en YouTube Studio.")
-        _log("   Inicia sesión con tu cuenta de Google en la ventana del navegador.")
-        _log("   Cuando ya veas YouTube Studio, vuelve aquí y pulsa ENTER.")
-        input("👉 Pulsa ENTER para continuar...")
+        _log("⚠️  You are not signed in to YouTube Studio.")
+        _log("   Sign in with your Google account in the browser window.")
+        _log("   Once you can see YouTube Studio, come back here and press ENTER.")
+        input("👉 Press ENTER to continue...")
 
         page.goto(STUDIO_URL, wait_until="domcontentloaded", timeout=120000)
         page.wait_for_timeout(3000)
 
-    raise RuntimeError("No se pudo iniciar sesión en YouTube Studio.")
+    raise RuntimeError("Could not sign in to YouTube Studio.")
 
 
 def _abrir_dialogo_subida(page):
     """Abre el diálogo de subida desde el botón Crear (con plan B por /upload)."""
-    _log("Abriendo el diálogo de subida...")
+    _log("Opening the upload dialog...")
 
     try:
         _clic_primer_visible(
@@ -159,7 +159,7 @@ def _abrir_dialogo_subida(page):
                 "#create-icon",
             ],
             timeout_ms=60000,
-            descripcion="el botón 'Crear'",
+            descripcion="the 'Create' button",
         )
         _clic_primer_visible(
             page,
@@ -170,11 +170,11 @@ def _abrir_dialogo_subida(page):
                 "tp-yt-paper-item:has-text('Upload')",
             ],
             timeout_ms=30000,
-            descripcion="la opción 'Subir vídeos'",
+            descripcion="the 'Upload videos' option",
         )
     except Exception as exc:
         # Plan B: esta URL abre Studio directamente con el diálogo de subida.
-        _log(f"⚠️  No se pudo usar el menú Crear ({exc}). Probando youtube.com/upload...")
+        _log(f"⚠️  Could not use the Create menu ({exc}). Trying youtube.com/upload...")
         page.goto("https://www.youtube.com/upload", wait_until="domcontentloaded", timeout=120000)
 
     page.wait_for_selector(
@@ -211,12 +211,12 @@ def _obtener_video_id(page, timeout_ms=120000):
             'a[href*="youtu.be/"]',
         ],
         timeout_ms=timeout_ms,
-        descripcion="el enlace del vídeo (ID)",
+        descripcion="the video link (ID)",
     )
     href = enlace.get_attribute("href") or ""
     coincidencia = re.search(r"(?:youtu\.be/|v=)([\w-]{11})", href)
     if not coincidencia:
-        raise RuntimeError(f"No se pudo extraer el ID del vídeo desde el enlace: {href}")
+        raise RuntimeError(f"Could not extract the video ID from the link: {href}")
     return coincidencia.group(1)
 
 
@@ -231,7 +231,7 @@ def _marcar_no_para_ninos(page):
             "#audience tp-yt-paper-radio-button:has-text('not made for kids')",
         ],
         timeout_ms=60000,
-        descripcion="la opción 'No, no es contenido para niños'",
+        descripcion="the 'No, it's not made for kids' option",
     )
     locator.scroll_into_view_if_needed()
     locator.click()
@@ -254,11 +254,11 @@ def _ir_a_visibilidad(page):
                 "button[aria-label*='Next' i]",
             ],
             timeout_ms=60000,
-            descripcion="el botón 'Siguiente'",
+            descripcion="the 'Next' button",
         )
         page.wait_for_timeout(1200)
 
-    raise RuntimeError("No se llegó a la pestaña de visibilidad.")
+    raise RuntimeError("Did not reach the visibility tab.")
 
 
 def _elegir_visibilidad(page, visibilidad):
@@ -266,7 +266,7 @@ def _elegir_visibilidad(page, visibilidad):
         page,
         VISIBILIDADES[visibilidad],
         timeout_ms=60000,
-        descripcion=f"la opción de visibilidad {visibilidad}",
+        descripcion=f"the {visibilidad} visibility option",
     )
     locator.scroll_into_view_if_needed()
     locator.click()
@@ -275,14 +275,14 @@ def _elegir_visibilidad(page, visibilidad):
 
 def _esperar_fin_subida(page, timeout_min=60):
     """Espera a que el archivo termine de subirse (la barra deja de mostrar %)."""
-    _log("Esperando a que termine la subida del archivo...")
+    _log("Waiting for the file upload to finish...")
 
     progreso_visto = False
     try:
         page.wait_for_selector("ytcp-video-upload-progress", state="attached", timeout=30000)
         progreso_visto = True
     except PlaywrightTimeoutError:
-        _log("⚠️  No se encontró la barra de progreso; se usará el botón final.")
+        _log("⚠️  Progress bar not found; the final button will be used instead.")
 
     limite = time.time() + timeout_min * 60
     while time.time() < limite:
@@ -294,7 +294,7 @@ def _esperar_fin_subida(page, timeout_min=60):
             }"""
         )
         if error:
-            raise RuntimeError(f"YouTube rechazó la subida: {error}")
+            raise RuntimeError(f"YouTube rejected the upload: {error}")
 
         estado = page.evaluate(
             """() => {
@@ -314,19 +314,19 @@ def _esperar_fin_subida(page, timeout_min=60):
             porcentaje = re.search(r"(\d+)\s*%", texto)
             llego_al_cien = porcentaje is not None and int(porcentaje.group(1)) >= 100
             if llego_al_cien or (not estado["subiendo"] and "%" not in texto):
-                _log("Subida completada.")
+                _log("Upload completed.")
                 return
         else:
             # Si la barra existió y desapareció, la subida ya terminó.
             if progreso_visto:
-                _log("Subida completada.")
+                _log("Upload completed.")
                 return
 
             # Sin barra de progreso: usar el botón final como referencia.
             boton = page.locator("#done-button button, #done-button").first
             try:
                 if boton.count() > 0 and boton.is_visible() and not boton.is_disabled():
-                    _log("Subida completada.")
+                    _log("Upload completed.")
                     return
             except Exception:
                 pass
@@ -334,8 +334,8 @@ def _esperar_fin_subida(page, timeout_min=60):
         page.wait_for_timeout(2000)
 
     raise TimeoutError(
-        f"La subida no terminó en {timeout_min} minutos. "
-        "Puedes aumentar el parámetro espera_subida_min."
+        f"The upload did not finish within {timeout_min} minutes. "
+        "You can increase the espera_subida_min parameter."
     )
 
 
@@ -357,7 +357,7 @@ def _esperar_boton_publicar(page, timeout_min=10):
                 continue
         page.wait_for_timeout(2000)
 
-    raise TimeoutError("El botón para publicar no se habilitó a tiempo.")
+    raise TimeoutError("The publish button was not enabled in time.")
 
 
 # Al elegir PUBLIC o UNLISTED, YouTube muestra un aviso que recomienda dejar el
@@ -464,8 +464,8 @@ def _confirmar_aviso_publicacion(page, timeout_ms=20000):
             boton.click()
             pulsado = True
             _log(
-                "⚠️  YouTube recomendaba publicar en privado; "
-                "se pulsa 'Publicar de todas formas'."
+                "⚠️  YouTube recommended publishing as private; "
+                "clicking 'Publish anyway'."
             )
             page.wait_for_timeout(1000)
         except Exception:
@@ -475,7 +475,7 @@ def _confirmar_aviso_publicacion(page, timeout_ms=20000):
 
 
 def _publicar(page):
-    _log("Publicando el vídeo...")
+    _log("Publishing the video...")
     boton = _esperar_boton_publicar(page)
     boton.scroll_into_view_if_needed()
     boton.click()
@@ -499,7 +499,7 @@ def _publicar(page):
         except Exception:
             page.keyboard.press("Escape")
     except PlaywrightTimeoutError:
-        _log("⚠️  No apareció el diálogo de confirmación, pero el vídeo ya se envió.")
+        _log("⚠️  The confirmation dialog did not appear, but the video was already submitted.")
 
     return video_id
 
@@ -538,13 +538,13 @@ def _preparar_miniatura(miniatura):
     if not ruta.is_absolute():
         ruta = (DIR_SCRIPT / ruta).resolve()
     if not ruta.is_file():
-        raise FileNotFoundError(f"No existe el archivo de miniatura: {ruta}")
+        raise FileNotFoundError(f"The thumbnail file does not exist: {ruta}")
     return ruta, False
 
 
 def _subir_miniatura(page, ruta, timeout_ms=120000):
     """Sube la miniatura en la pestaña de detalles y comprueba que se aplicó."""
-    _log(f"Subiendo miniatura: {ruta.name}")
+    _log(f"Uploading thumbnail: {ruta.name}")
 
     selectores = [
         "ytcp-thumbnail-uploader input#file-loader",
@@ -567,13 +567,13 @@ def _subir_miniatura(page, ruta, timeout_ms=120000):
             page.wait_for_timeout(500)
 
     if entrada is None:
-        _log("⚠️  No se encontró el selector de miniatura; se publica sin ella.")
+        _log("⚠️  Thumbnail selector not found; publishing without it.")
         return False
 
     try:
         entrada.set_input_files(str(ruta))
     except Exception as exc:
-        _log(f"⚠️  No se pudo subir la miniatura ({exc}); se publica sin ella.")
+        _log(f"⚠️  Could not upload the thumbnail ({exc}); publishing without it.")
         return False
 
     # YouTube tarda unos segundos en procesar la imagen; si la rechaza,
@@ -598,16 +598,16 @@ def _subir_miniatura(page, ruta, timeout_ms=120000):
             estado = {"error": "", "aplicada": False}
 
         if estado["error"]:
-            _log(f"⚠️  YouTube rechazó la miniatura: {estado['error']}")
+            _log(f"⚠️  YouTube rejected the thumbnail: {estado['error']}")
             return False
 
         if estado["aplicada"]:
-            _log("Miniatura aplicada.")
+            _log("Thumbnail applied.")
             return True
 
         page.wait_for_timeout(500)
 
-    _log("⚠️  No se pudo confirmar la miniatura; se publica de todas formas.")
+    _log("⚠️  Could not confirm the thumbnail; publishing anyway.")
     return False
 
 
@@ -619,31 +619,31 @@ def upload_video(
     espera_subida_min=60,
     miniatura=None,
 ):
-    print("subiendo video")
+    print("uploading video")
     ruta = Path(ruta_video)
     if not ruta.is_absolute():
         ruta = (DIR_SCRIPT / ruta).resolve()
     if not ruta.is_file():
-        raise FileNotFoundError(f"No existe el archivo de vídeo: {ruta}")
+        raise FileNotFoundError(f"The video file does not exist: {ruta}")
 
     visibilidad = visibilidad.upper().strip()
     if visibilidad not in VISIBILIDADES:
-        raise ValueError("visibilidad debe ser PUBLIC, UNLISTED o PRIVATE")
+        raise ValueError("visibilidad must be PUBLIC, UNLISTED or PRIVATE")
 
     titulo = titulo.strip()
     descripcion = descripcion.strip()
     if not titulo:
-        raise ValueError("El título no puede estar vacío.")
+        raise ValueError("The title cannot be empty.")
     if len(titulo) > 100:
-        raise ValueError("El título supera los 100 caracteres que permite YouTube.")
+        raise ValueError("The title exceeds the 100 characters allowed by YouTube.")
     if len(descripcion) > 5000:
-        raise ValueError("La descripción supera los 5000 caracteres que permite YouTube.")
+        raise ValueError("The description exceeds the 5000 characters allowed by YouTube.")
     if "<" in titulo or ">" in titulo or "<" in descripcion or ">" in descripcion:
-        raise ValueError("YouTube no permite los caracteres '<' ni '>' en título/descripción.")
+        raise ValueError("YouTube does not allow the characters '<' or '>' in the title/description.")
 
     ruta_miniatura, miniatura_temporal = _preparar_miniatura(miniatura)
     if ruta_miniatura is not None and ruta_miniatura.stat().st_size > 2 * 1024 * 1024:
-        _log("⚠️  La miniatura supera los 2 MB que admite YouTube; puede que la rechace.")
+        _log("⚠️  The thumbnail exceeds the 2 MB limit supported by YouTube; it may be rejected.")
 
     video_id = None
 
@@ -660,7 +660,7 @@ def upload_video(
             _asegurar_sesion(page)
             _abrir_dialogo_subida(page)
 
-            _log(f"Subiendo archivo: {ruta}")
+            _log(f"Uploading file: {ruta}")
             page.locator('input[name="Filedata"], input[type="file"]').first.set_input_files(str(ruta))
 
             # Esperar el formulario de detalles del vídeo.
@@ -668,10 +668,10 @@ def upload_video(
                 page,
                 ["#title-textarea #textbox", "#title-wrapper #textbox", "#textbox"],
                 timeout_ms=120000,
-                descripcion="la caja del título",
+                descripcion="the title box",
             )
 
-            _log("Rellenando título y descripción...")
+            _log("Filling in title and description...")
             _escribir_en_caja(page, titulo_box, titulo)
 
             descripcion_box = page.locator("#description-textarea #textbox").first
@@ -685,23 +685,23 @@ def upload_video(
             # El ID aparece en el panel derecho en cuanto arranca la subida.
             try:
                 video_id = _obtener_video_id(page, timeout_ms=60000)
-                _log(f"ID del vídeo: {video_id}")
+                _log(f"Video ID: {video_id}")
             except PlaywrightTimeoutError:
-                _log("⚠️  Aún no se pudo leer el ID; se intentará al publicar.")
+                _log("⚠️  Could not read the ID yet; will try again when publishing.")
 
-            _log("Configurando audiencia...")
+            _log("Setting audience...")
             _marcar_no_para_ninos(page)
 
-            _log("Avanzando hasta la pantalla de visibilidad...")
+            _log("Moving on to the visibility screen...")
             _ir_a_visibilidad(page)
 
-            _log(f"Seleccionando visibilidad: {visibilidad}")
+            _log(f"Selecting visibility: {visibilidad}")
             _elegir_visibilidad(page, visibilidad)
 
             _esperar_fin_subida(page, timeout_min=espera_subida_min)
             video_id = _publicar(page) or video_id
 
-            _log("✅ ¡Proceso finalizado con éxito!")
+            _log("✅ Process finished successfully!")
         finally:
             contexto.close()
             if miniatura_temporal and ruta_miniatura is not None:
@@ -727,8 +727,8 @@ def upload_video(
 #             descripcion="Descripción de prueba.\n\nSegunda línea de la descripción.",
 #             visibilidad="PRIVATE",
 #         )
-#         # print(f"\nPuedes usar este ID en el resto de tu programa: {id_subido}")
-#         # print(f"Enlace: https://youtu.be/{id_subido}")
+#         # print(f"\nYou can use this ID in the rest of your program: {id_subido}")
+#         # print(f"Link: https://youtu.be/{id_subido}")
 #     except Exception as exc:
 #         print(f"\n❌ Error: {exc}")
 #         sys.exit(1)

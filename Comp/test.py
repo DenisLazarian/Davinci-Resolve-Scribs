@@ -32,10 +32,10 @@ settings = {
 allowed_time_separation, min_duration_frames = 5, 5  # segundos
 
 # if resolve is None:
-#     print("No se pudo conectar con DaVinci Resolve")
+#     print("Could not connect to DaVinci Resolve")
 #     exit(0)
 # else:
-#     print("Conexión establecida correctamente")
+#     print("Connection established successfully")
 
 def init_davinci_project():
     """Inicializar el proyecto de DaVinci Resolve"""
@@ -47,10 +47,10 @@ def init_davinci_project():
     fps = float(project.GetSetting("timelineFrameRate"))
     
     if resolve is None:
-        print("No se pudo conectar con DaVinci Resolve")
+        print("Could not connect to DaVinci Resolve")
         exit(0)
     if not project:
-        raise RuntimeError("No hay ningún proyecto abierto en DaVinci Resolve.")
+        raise RuntimeError("There is no project open in DaVinci Resolve.")
 
 
 # def _log(s):
@@ -82,8 +82,8 @@ def sec(frames):
 
     # resu = []
     # for clip in clips:
-    #     resu += "Clip de video: " + clip.GetName()
-    #     resu += " - Duración: " + str(clip.GetDuration()) + " frames"
+    #     resu += "Video clip: " + clip.GetName()
+    #     resu += " - Duration: " + str(clip.GetDuration()) + " frames"
     #     resu += " - Start: " + str(clip.GetStart()) + " frames"
     #     resu += " - End: " + str(clip.GetEnd()) + " frames"
 
@@ -156,7 +156,7 @@ def show_render_prev(groups) -> list:
 
         # Ignorar grupos de 5 segundos o menos
         if float(sec(duration)) < min_duration_frames:
-            print(f"Ignorado: {group.title} ({duration / fps:.2f} segundos)")
+            print(f"Ignored: {group.title} ({duration / fps:.2f} seconds)")
             groups.remove(group)
             continue
 
@@ -178,12 +178,12 @@ def create_render_jobs(clips) -> list:
             job_id = project.AddRenderJob()
             job_ids.append(job_id)
             print(
-                f"Tarea añadida: {job_id} | "
+                f"Job added: {job_id} | "
                 f"{clip['title']} | "
-                f"{(clip['end'] - clip['start']) / fps:.2f} segundos"
+                f"{(clip['end'] - clip['start']) / fps:.2f} seconds"
             )
         else:
-            print("Error configurando el renderizado")
+            print("Error configuring the render")
             return
 
     return job_ids
@@ -195,11 +195,11 @@ def render_jobs(job_ids) -> bool:
     Devuelve True solo si todas acabaron en 'Complete'. Hay que esperar aquí
     antes de subir los vídeos, porque si no el archivo aún no existe."""
     if not job_ids:
-        print("No hay tareas de renderizado")
+        print("There are no render jobs")
         return False
 
     if not project.StartRendering():
-        print("No se pudo iniciar el renderizado")
+        print("Could not start rendering")
         return False
 
     finalizados = {"Complete", "Failed", "Cancelled"}
@@ -214,9 +214,9 @@ def render_jobs(job_ids) -> bool:
         if all(estado in finalizados for estado in estados.values()):
             fallidos = {j: e for j, e in estados.items() if e != "Complete"}
             if fallidos:
-                print(f"Tareas no completadas: {fallidos}")
+                print(f"Jobs not completed: {fallidos}")
                 return False
-            print("finalizado")
+            print("finished")
             return True
 
         time.sleep(2)
@@ -230,7 +230,7 @@ def establish_title(title) -> str:
         r"^\d{4}(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])([01]\d|2[0-3])[0-5]\d[0-5]\d\.[A-Za-z0-9]+$"
     )
     if patron.fullmatch(title) is None:
-        print(f"El título '{title}' no cumple con el formato esperado.")
+        print(f"The title '{title}' does not match the expected format.")
         return title
     
     year = title[:4]
@@ -251,9 +251,9 @@ def establish_title(title) -> str:
     # clips = timeline.GetItemListInTrack("audio", 1)
 
     # if project:
-    #     print("Proyecto actual:", project.GetName())
+    #     print("Current project:", project.GetName())
     # else:
-    #     print("No hay ningún proyecto abierto")
+    #     print("There is no project open")
 
 if __name__ == "__main__":
     groups = get_clips()

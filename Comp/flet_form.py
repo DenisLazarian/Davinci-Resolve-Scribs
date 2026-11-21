@@ -12,8 +12,6 @@ import json
 from dataclasses import asdict
 from pathlib import Path
 
-import gettext
-
 # --- Bootstrap del API de scripts de Resolve ---------
 _API_RESOLVE = Path(os.environ.get(
     "RESOLVE_SCRIPT_API",
@@ -44,7 +42,7 @@ from upload_video import upload_video
 
 PERSONAS = ["Laura", "Juan", "María", "Pedro"]
 IDIOMAS = [("es", "Español"), ("ca", "Català"), ("en", "English")]
-PASOS = ["Notificación", "Procesamiento"]
+PASOS = ["Notification", "Processing"]
 ACENTO = "#1f6f8b"
 
 # Tarjeta del formulario: tamaño fijo en ventanas grandes, se encoge en las pequeñas
@@ -78,25 +76,25 @@ def ruta_render(carpeta, nombre):
 def estado_resolve() -> str:
     """Devuelve '' si Resolve Studio puede usarse, o el motivo por el que no."""
     if resolve_api is None:
-        print(f"No se pudo importar test.py: {ERROR_RESOLVE}")
-        return "No se encontró DaVinci Resolve Studio en este equipo."
+        print(f"Could not import test.py: {ERROR_RESOLVE}")
+        return "DaVinci Resolve Studio was not found on this computer."
     try:
         import DaVinciResolveScript as dvr
         resolve = dvr.scriptapp("Resolve")
     except BaseException as ex:
-        print(f"No se pudo cargar el API de scripts de Resolve: {ex}")
-        return "No se pudo cargar el API de scripts de DaVinci Resolve Studio."
+        print(f"Could not load the Resolve scripting API: {ex}")
+        return "Could not load the DaVinci Resolve Studio scripting API."
     if resolve is None:
-        return "DaVinci Resolve Studio está instalado, pero no está abierto."
+        return "DaVinci Resolve Studio is installed, but it is not running."
     try:
         gestor = resolve.GetProjectManager()
         proyecto = gestor.GetCurrentProject() if gestor else None
     except BaseException as ex:
-        print(f"No se pudo conectar con Resolve: {ex}")
-        return "No se pudo conectar con DaVinci Resolve Studio."
+        print(f"Could not connect to Resolve: {ex}")
+        return "Could not connect to DaVinci Resolve Studio."
     if proyecto is None:
-        return ("DaVinci Resolve Studio está abierto, pero no hay ningún "
-                "proyecto cargado.")
+        return ("DaVinci Resolve Studio is open, but no project is "
+                "loaded.")
     return ""
 
 
@@ -139,12 +137,12 @@ def trabajo_render(
     """Renderiza, sube y (opcional) apaga. Devuelve un mensaje de error o ''."""
     mensaje = ""
     if resolve_api is None:
-        return "DaVinci Resolve Studio no está disponible."
+        return "DaVinci Resolve Studio is not available."
     try:
         jobs = resolve_api.create_render_jobs(a_renderizar)
         ok = bool(jobs) and resolve_api.render_jobs(jobs)  # BLOQUEA hasta terminar
         if not ok:
-            return "El render no terminó correctamente."
+            return "The render did not finish successfully."
         if subir_youtube:
             yt_ids = []
             for c in a_renderizar:
@@ -152,8 +150,8 @@ def trabajo_render(
                 nombre = s.get("CustomName") or c["title"]
                 ruta = ruta_render(s.get("TargetDir", ""), nombre)
                 if ruta is None:
-                    print(f"No encuentro el vídeo renderizado de «{c['title']}»")
-                    mensaje = "Algún vídeo renderizado no se encontró para subirlo."
+                    print(f"Could not find the rendered video for “{c['title']}”")
+                    mensaje = "Some rendered videos could not be found for uploading."
                     continue
                 yt_ids.append(upload_video(
                     str(ruta), c["title"], "", "UNLISTED",
@@ -205,23 +203,23 @@ async def main(page: ft.Page):
         try:
             plantilla = leer_plantilla()
         except (OSError, json.JSONDecodeError) as ex:
-            print(f"No se pudo leer la plantilla {PLANTILLA_CONFIG}: {ex}")
+            print(f"Could not read the template {PLANTILLA_CONFIG}: {ex}")
             return {}
 
         if not os.path.exists(archivo_config):
             try:
                 guardar_json(plantilla)
             except OSError as ex:
-                print(f"No se pudo crear {archivo_config}: {ex}")
+                print(f"Could not create {archivo_config}: {ex}")
             return plantilla
 
         try:
             return combinar(plantilla, leer_json())
         except (OSError, json.JSONDecodeError) as ex:
-            print(f"settings.json no es válido ({ex}); se usa la plantilla.")
+            print(f"settings.json is not valid ({ex}); using the template.")
             return plantilla
 
-    page.title = _("Procesamiento de video")
+    page.title = "Video processing"
     page.theme_mode = ft.ThemeMode.LIGHT
     page.theme = ft.Theme(color_scheme_seed=ACENTO)
     page.dark_theme = ft.Theme(color_scheme_seed=ACENTO)
@@ -238,21 +236,21 @@ async def main(page: ft.Page):
     lanzador = ft.UrlLauncher()  # servicio para abrir los enlaces de ayuda
 
     # ------------------------------------------------------------------ Paso 1
-    emisor = ft.Dropdown(label="Emisor", expand=True,
+    emisor = ft.Dropdown(label="Sender", expand=True,
                          options=[ft.DropdownOption(key=p, text=p) for p in PERSONAS])
-    receptor = ft.Dropdown(label="Receptor", expand=True,
+    receptor = ft.Dropdown(label="Recipient", expand=True,
                            options=[ft.DropdownOption(key=p, text=p) for p in PERSONAS])
-    observacion = ft.TextField(label="Observación", multiline=True, min_lines=4, max_lines=6)
-    sesion_mia = ft.Checkbox(label="La sesión me pertenece.")
-    idioma_msj = ft.Dropdown(label="Idioma del mensaje", value="es",
+    observacion = ft.TextField(label="Notes", multiline=True, min_lines=4, max_lines=6)
+    sesion_mia = ft.Checkbox(label="This session belongs to me.")
+    idioma_msj = ft.Dropdown(label="Message language", value="es",
                              options=[ft.DropdownOption(key=k, text=v) for k, v in IDIOMAS])
-    guardar_prefs = ft.Checkbox(label="Guardar preferencias para el próximo formulario")
+    guardar_prefs = ft.Checkbox(label="Save preferences for the next form")
 
     paso1 = ft.Column(
         [
-            ft.Text("Notificación", size=20, weight=ft.FontWeight.BOLD),
-            ft.Text("Especifica tu nombre como emisor y a quién se dirige la notificación. "
-                    "El mensaje se enviará a través de WhatsApp.",
+            ft.Text("Notification", size=20, weight=ft.FontWeight.BOLD),
+            ft.Text("Specify your name as the sender and who the notification is addressed to. "
+                    "The message will be sent via WhatsApp.",
                     color=ft.Colors.ON_SURFACE_VARIANT),
             ft.Row([emisor, receptor]),
             observacion,
@@ -264,27 +262,27 @@ async def main(page: ft.Page):
     )
 
     # ------------------------------------------------------------------ Paso 2
-    subir_yt = ft.Checkbox(label="Subir directo a YouTube")
-    apagar_pc = ft.Checkbox(label="Apagar PC al terminar (60 s de margen)")
+    subir_yt = ft.Checkbox(label="Upload directly to YouTube")
+    apagar_pc = ft.Checkbox(label="Shut down PC when finished (60 s delay)")
     lista = ft.Column(spacing=10)
     contador_clips = ft.Text(color=ft.Colors.ON_SURFACE_VARIANT, size=13)
-    lista_vacia = ft.Text("No queda ningún clip en la lista.", visible=False,
+    lista_vacia = ft.Text("No clips left in the list.", visible=False,
                           text_align=ft.TextAlign.CENTER)
     error_carga = ft.Text(color=ft.Colors.ERROR, visible=False)
 
     paso2 = ft.Column(
         [
-            ft.Text("Procesamiento", size=20, weight=ft.FontWeight.BOLD),
-            ft.Text("Aquí se muestran los clips que se procesarán y se pueden modificar "
-                    "sus propiedades.", color=ft.Colors.ON_SURFACE_VARIANT),
+            ft.Text("Processing", size=20, weight=ft.FontWeight.BOLD),
+            ft.Text("The clips that will be processed are listed here, and their "
+                    "properties can be edited.", color=ft.Colors.ON_SURFACE_VARIANT),
             ft.Row([subir_yt, apagar_pc], wrap=True),
-            ft.Row([ft.Text("Clips detectados", weight=ft.FontWeight.W_600), contador_clips],
+            ft.Row([ft.Text("Detected clips", weight=ft.FontWeight.W_600), contador_clips],
                    alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
             error_carga,
             lista,
             lista_vacia,
-            ft.Text("Haz clic en la miniatura o en el título para cambiarlos. El lápiz abre "
-                    "las propiedades del render y la ✕ descarta el grupo de clips.",
+            ft.Text("Click a thumbnail or a title to change it. The pencil opens the "
+                    "render properties and the ✕ discards the clip group.",
                     size=12, color=ft.Colors.ON_SURFACE_VARIANT),
         ],
         spacing=14,
@@ -305,7 +303,7 @@ async def main(page: ft.Page):
             try:
                 await lanzador.launch_url(url)
             except BaseException as ex:
-                aviso(f"No se pudo abrir el enlace: {ex}")
+                aviso(f"Could not open the link: {ex}")
         return ft.TextButton(content=texto, icon=icono, on_click=abrir)
 
     def mostrar_requisitos_resolve(motivo):
@@ -313,21 +311,21 @@ async def main(page: ft.Page):
             modal=True,
             icon=ft.Icon(icon=ft.Icons.ERROR_OUTLINE),
             icon_color=ft.Colors.ERROR,
-            title=ft.Text("Necesitas DaVinci Resolve Studio"),
+            title=ft.Text("DaVinci Resolve Studio is required"),
             content=ft.Column(
                 [
                     ft.Text(motivo),
-                    ft.Text("Este formulario renderiza los vídeos con DaVinci Resolve Studio. "
-                            "Instálalo, ábrelo con un proyecto cargado y vuelve a pulsar "
-                            "Renderizar."),
-                    ft.Text("Si ya lo tienes instalado, revisa Preferencias > Sistema > "
-                            "General para permitir el acceso desde aplicaciones externas.",
+                    ft.Text("This form renders videos with DaVinci Resolve Studio. "
+                            "Install it, open it with a project loaded and press "
+                            "Render again."),
+                    ft.Text("If you already have it installed, check Preferences > System > "
+                            "General to allow access from external applications.",
                             color=ft.Colors.ON_SURFACE_VARIANT, size=12),
                     ft.Column(
                         [
-                            boton_enlace("Documentación del API de scripting",
+                            boton_enlace("Scripting API documentation",
                                          URL_API_RESOLVE, ft.Icons.MENU_BOOK_OUTLINED),
-                            boton_enlace("Página oficial de DaVinci Resolve",
+                            boton_enlace("Official DaVinci Resolve website",
                                          URL_DAVINCI, ft.Icons.OPEN_IN_NEW),
                         ],
                         spacing=0,
@@ -335,7 +333,7 @@ async def main(page: ft.Page):
                 ],
                 tight=True, spacing=14, width=460,
             ),
-            actions=[ft.FilledButton(content="Entendido",
+            actions=[ft.FilledButton(content="Got it",
                                      on_click=lambda e: page.pop_dialog())],
         ))
 
@@ -399,7 +397,7 @@ async def main(page: ft.Page):
             clips.extend(await asyncio.to_thread(leer_resolve))
             aplicar_config_video()
         except BaseException as ex:  # init_davinci_project puede llamar a exit(0)
-            error_carga.value = f"No se pudo leer DaVinci Resolve: {ex or 'sin conexión'}"
+            error_carga.value = f"Could not read DaVinci Resolve: {ex or 'no connection'}"
             error_carga.visible = True
         pintar_clips()
 
@@ -407,8 +405,8 @@ async def main(page: ft.Page):
     def pintar_clips():
         lista.controls = [crear_item(c) for c in clips]
         total = sum(max(0, c["end"] - c["start"]) for c in clips)
-        contador_clips.value = (f"{len(clips)} clip{'s' if len(clips) != 1 else ''} · {total} fotogramas"
-                                if clips else "Sin clips")
+        contador_clips.value = (f"{len(clips)} clip{'s' if len(clips) != 1 else ''} · {total} frames"
+                                if clips else "No clips")
         lista_vacia.visible = not clips
         page.update()
 
@@ -426,17 +424,17 @@ async def main(page: ft.Page):
             border_radius=8, clip_behavior=ft.ClipBehavior.ANTI_ALIAS,
             bgcolor=ft.Colors.SECONDARY_CONTAINER,
             border=ft.Border.all(1.5, ft.Colors.OUTLINE_VARIANT),
-            tooltip="Cambiar miniatura", ink=True, on_click=al_clic,
+            tooltip="Change thumbnail", ink=True, on_click=al_clic,
         )
 
     def crear_item(clip):
         s = clip["settings"]
         frames = max(0, clip["end"] - clip["start"])
         titulo = ft.TextButton(
-            content=clip["title"], tooltip="Haz clic para cambiar el título",
+            content=clip["title"], tooltip="Click to change the title",
             style=ft.ButtonStyle(padding=ft.Padding.symmetric(horizontal=4, vertical=0)),
         )
-        meta = ft.Text(f"{clip['start']} – {clip['end']} · {frames} fotogramas · "
+        meta = ft.Text(f"{clip['start']} – {clip['end']} · {frames} frames · "
                        f"{s['FormatWidth']}×{s['FormatHeight']}",
                        size=12, color=ft.Colors.ON_SURFACE_VARIANT)
         datos = ft.Column([titulo, meta], spacing=2, expand=True)
@@ -447,9 +445,9 @@ async def main(page: ft.Page):
                 [
                     miniatura(clip),
                     datos,
-                    ft.IconButton(icon=ft.Icons.EDIT_OUTLINED, tooltip="Propiedades del render",
+                    ft.IconButton(icon=ft.Icons.EDIT_OUTLINED, tooltip="Render properties",
                                   on_click=lambda e, c=clip: abrir_ajustes(c)),
-                    ft.IconButton(icon=ft.Icons.CLOSE, tooltip="Descartar el grupo de clips",
+                    ft.IconButton(icon=ft.Icons.CLOSE, tooltip="Discard this clip group",
                                   icon_color=ft.Colors.ERROR,
                                   on_click=lambda e, c=clip: descartar(c)),
                 ],
@@ -489,13 +487,13 @@ async def main(page: ft.Page):
             clips.insert(min(indice, len(clips)), clip)
             pintar_clips()
 
-        aviso(f"«{clip['title']}» descartado del render.", "Deshacer", deshacer)
+        aviso(f"“{clip['title']}” removed from the render.", "Undo", deshacer)
 
     # ----------------------------------------------------- Diálogo: miniatura
     async def abrir_miniatura(clip):
         elegida = {"bytes": b"", "ruta": ""}
         error = ft.Text(color=ft.Colors.ERROR, visible=False, size=12)
-        nombre = ft.Text("Ningún archivo seleccionado", size=12,
+        nombre = ft.Text("No file selected", size=12,
                          color=ft.Colors.ON_SURFACE_VARIANT)
 
         def caja(contenido):
@@ -506,11 +504,11 @@ async def main(page: ft.Page):
                 clip_behavior=ft.ClipBehavior.ANTI_ALIAS,
             )
 
-        sin_imagen = lambda: ft.Text("Sin imagen", size=12)
+        sin_imagen = lambda: ft.Text("No image", size=12)
         actual = caja(ft.Image(src=clip["thumbnail"], fit=ft.BoxFit.COVER, width=200, height=112)
                       if clip["thumbnail"] else sin_imagen())
         nueva = caja(sin_imagen())
-        todos = ft.Checkbox(label=f"Aplicar a todos los clips ({len(clips)})")
+        todos = ft.Checkbox(label=f"Apply to all clips ({len(clips)})")
 
         async def elegir(e):
             archivos = await selector.pick_files(
@@ -522,9 +520,9 @@ async def main(page: ft.Page):
             if archivos:
                 ruta = Path(archivos[0].path) if archivos[0].path else None
                 if ruta is None or ruta.suffix.lower() not in EXTENSIONES_IMG:
-                    error.value, error.visible = "El archivo debe ser una imagen.", True
+                    error.value, error.visible = "The file must be an image.", True
                 elif ruta.stat().st_size > 2 * 1024 * 1024:
-                    error.value, error.visible = "La imagen es demasiado grande (máximo 2 MB).", True
+                    error.value, error.visible = "The image is too large (2 MB maximum).", True
                 else:
                     elegida["bytes"] = ruta.read_bytes()
                     elegida["ruta"] = str(ruta)
@@ -535,7 +533,7 @@ async def main(page: ft.Page):
 
         def aplicar(e):
             if not elegida["bytes"]:
-                error.value, error.visible = "Elige una imagen antes de aplicar los cambios.", True
+                error.value, error.visible = "Choose an image before applying the changes.", True
                 page.update()
                 return
             destinos = list(clips) if todos.value else [clip]
@@ -554,48 +552,48 @@ async def main(page: ft.Page):
                 prefs["thumbnail_path"] = ruta_anterior
                 pintar_clips()
 
-            aviso(f"Miniatura aplicada a {len(destinos)} clips." if len(destinos) > 1
-                  else "Miniatura actualizada.", "Deshacer", deshacer)
+            aviso(f"Thumbnail applied to {len(destinos)} clips." if len(destinos) > 1
+                  else "Thumbnail updated.", "Undo", deshacer)
 
         page.show_dialog(ft.AlertDialog(
             modal=True,
-            title=ft.Text("Cambiar miniatura"),
+            title=ft.Text("Change thumbnail"),
             content=ft.Column(
                 [
-                    ft.Text(f"«{clip['title']}»", size=12, color=ft.Colors.ON_SURFACE_VARIANT),
-                    ft.Row([ft.Column([ft.Text("Actual", weight=ft.FontWeight.W_600), actual]),
-                            ft.Column([ft.Text("Nueva", weight=ft.FontWeight.W_600), nueva])],
+                    ft.Text(f"“{clip['title']}”", size=12, color=ft.Colors.ON_SURFACE_VARIANT),
+                    ft.Row([ft.Column([ft.Text("Current", weight=ft.FontWeight.W_600), actual]),
+                            ft.Column([ft.Text("New", weight=ft.FontWeight.W_600), nueva])],
                            spacing=16),
-                    ft.Row([ft.Button(content="Elegir imagen…", icon=ft.Icons.IMAGE_OUTLINED,
+                    ft.Row([ft.Button(content="Choose image…", icon=ft.Icons.IMAGE_OUTLINED,
                                       on_click=elegir), nombre]),
-                    ft.Text("YouTube exige al menos 1280×720 px y un máximo de 2 MB.",
+                    ft.Text("YouTube requires at least 1280×720 px and a maximum of 2 MB.",
                             size=11, color=ft.Colors.ON_SURFACE_VARIANT),
                     todos,
                     error,
                 ],
                 tight=True, spacing=12, width=440,
             ),
-            actions=[ft.TextButton(content="Cancelar", on_click=lambda e: page.pop_dialog()),
-                     ft.FilledButton(content="Aplicar", on_click=aplicar)],
+            actions=[ft.TextButton(content="Cancel", on_click=lambda e: page.pop_dialog()),
+                     ft.FilledButton(content="Apply", on_click=aplicar)],
         ))
 
     # ------------------------------------------------ Diálogo: propiedades
     def abrir_ajustes(clip):
         s = clip["settings"]
-        nombre = ft.TextField(label="Nombre del archivo", value=s.get("CustomName") or clip["title"],
+        nombre = ft.TextField(label="File name", value=s.get("CustomName") or clip["title"],
                               max_length=120)
-        ancho = ft.TextField(label="Anchura (px)", value=str(s["FormatWidth"]),
+        ancho = ft.TextField(label="Width (px)", value=str(s["FormatWidth"]),
                              keyboard_type=ft.KeyboardType.NUMBER, expand=True)
-        alto = ft.TextField(label="Altura (px)", value=str(s["FormatHeight"]),
+        alto = ft.TextField(label="Height (px)", value=str(s["FormatHeight"]),
                             keyboard_type=ft.KeyboardType.NUMBER, expand=True)
-        carpeta = ft.TextField(label="Carpeta de destino", value=s.get("TargetDir", ""))
-        todos = ft.Checkbox(label="Renderizar el clip completo", value=bool(s.get("SelectAllFrames")))
-        f_in = ft.TextField(label="Fotograma inicial", value=str(s["MarkIn"]),
+        carpeta = ft.TextField(label="Destination folder", value=s.get("TargetDir", ""))
+        todos = ft.Checkbox(label="Render the entire clip", value=bool(s.get("SelectAllFrames")))
+        f_in = ft.TextField(label="Start frame", value=str(s["MarkIn"]),
                             keyboard_type=ft.KeyboardType.NUMBER, expand=True)
-        f_out = ft.TextField(label="Fotograma final", value=str(s["MarkOut"]),
+        f_out = ft.TextField(label="End frame", value=str(s["MarkOut"]),
                              keyboard_type=ft.KeyboardType.NUMBER, expand=True)
-        video = ft.Checkbox(label="Exportar video", value=s.get("ExportVideo", True) is not False)
-        audio = ft.Checkbox(label="Exportar audio", value=s.get("ExportAudio", True) is not False)
+        video = ft.Checkbox(label="Export video", value=s.get("ExportVideo", True) is not False)
+        audio = ft.Checkbox(label="Export audio", value=s.get("ExportAudio", True) is not False)
         duracion = ft.Text(size=12, color=ft.Colors.ON_SURFACE_VARIANT)
 
         def entero(campo, defecto):
@@ -607,11 +605,11 @@ async def main(page: ft.Page):
         def refrescar(e=None):
             f_in.disabled = f_out.disabled = bool(todos.value)
             if todos.value:
-                duracion.value = "Se renderizará el clip completo, sin marcas de entrada y salida."
+                duracion.value = "The entire clip will be rendered, without in/out marks."
             else:
                 total = entero(f_out, 0) - entero(f_in, 0)
-                duracion.value = (f"Duración: {total} fotogramas." if total > 0
-                                  else "El fotograma final debe ser mayor que el inicial.")
+                duracion.value = (f"Duration: {total} frames." if total > 0
+                                  else "The end frame must be greater than the start frame.")
             page.update()
 
         todos.on_change = refrescar
@@ -626,13 +624,13 @@ async def main(page: ft.Page):
                 campo.error_text = None
             ok = True
             if not (nombre.value or "").strip():
-                nombre.error_text, ok = "Obligatorio", False
+                nombre.error_text, ok = "Required", False
             if w < 2:
-                ancho.error_text, ok = "Mínimo 2", False
+                ancho.error_text, ok = "Minimum 2", False
             if h < 2:
-                alto.error_text, ok = "Mínimo 2", False
+                alto.error_text, ok = "Minimum 2", False
             if not todos.value and fin <= inicio:
-                f_out.error_text, ok = "Debe ser mayor que el inicial", False
+                f_out.error_text, ok = "Must be greater than the start frame", False
             if not ok:
                 page.update()
                 return
@@ -651,16 +649,16 @@ async def main(page: ft.Page):
 
         page.show_dialog(ft.AlertDialog(
             modal=True,
-            title=ft.Column([ft.Text("Propiedades del render"),
-                             ft.Text(f"«{clip['title']}» · {clip['start']} – {clip['end']} fotogramas",
+            title=ft.Column([ft.Text("Render properties"),
+                             ft.Text(f"“{clip['title']}” · {clip['start']} – {clip['end']} frames",
                                      size=12, color=ft.Colors.ON_SURFACE_VARIANT)], spacing=2),
             content=ft.Column(
                 [nombre, ft.Row([ancho, alto]), carpeta, todos, ft.Row([f_in, f_out]),
                  duracion, video, audio],
                 tight=True, spacing=12, width=480, scroll=ft.ScrollMode.AUTO,
             ),
-            actions=[ft.TextButton(content="Cancelar", on_click=lambda e: page.pop_dialog()),
-                     ft.FilledButton(content="Guardar cambios", on_click=guardar)],
+            actions=[ft.TextButton(content="Cancel", on_click=lambda e: page.pop_dialog()),
+                     ft.FilledButton(content="Save changes", on_click=guardar)],
         ))
         refrescar()
 
@@ -674,7 +672,7 @@ async def main(page: ft.Page):
             mostrar_paso(0)
             return
         if not clips:
-            aviso("No hay clips que renderizar.")
+            aviso("There are no clips to render.")
             return
 
         if guardar_prefs.value:
@@ -684,18 +682,18 @@ async def main(page: ft.Page):
                 prefs["thumbnail_path"] = datos["video_config"]["thumbnail"]
                 prefs["destiny_dir"] = datos["video_config"]["destiny_dir"]
             except OSError as ex:
-                aviso(f"No se pudieron guardar las preferencias: {ex}")
+                aviso(f"Could not save preferences: {ex}")
 
         # Copia de lo que hay ahora mismo en pantalla
         a_renderizar = [dict(c, settings=dict(c["settings"])) for c in clips]
-        print("Emisor:", emisor.value, "| Receptor:", receptor.value,
-              "| Idioma:", idioma_msj.value, "| Mía:", sesion_mia.value)
-        print("Observación:", observacion.value)
+        print("Sender:", emisor.value, "| Recipient:", receptor.value,
+              "| Language:", idioma_msj.value, "| Own session:", sesion_mia.value)
+        print("Notes:", observacion.value)
 
         page.show_dialog(ft.AlertDialog(
             modal=True,
-            title=ft.Text("Renderizando…"),
-            content=ft.Row([ft.ProgressRing(), ft.Text("Esperando a DaVinci Resolve…")], spacing=16,
+            title=ft.Text("Rendering…"),
+            content=ft.Row([ft.ProgressRing(), ft.Text("Waiting for DaVinci Resolve…")], spacing=16,
                            tight=True),
         ))
         page.update()  # que el diálogo se vea antes de empezar el trabajo bloqueante
@@ -728,26 +726,26 @@ async def main(page: ft.Page):
 
         page.show_dialog(ft.AlertDialog(
             modal=True,
-            title=ft.Text("¡Todo listo!" if not mensaje_error else "Terminado con avisos"),
-            content=ft.Text(mensaje_error or "Los trabajos de renderizado han terminado en DaVinci Resolve.",
+            title=ft.Text("All done!" if not mensaje_error else "Finished with warnings"),
+            content=ft.Text(mensaje_error or "The render jobs have finished in DaVinci Resolve.",
                             color=ft.Colors.ERROR if mensaje_error else None),
-            actions=[ft.FilledButton(content="Cerrar aplicación", on_click=cerrar),
-                     ft.OutlinedButton(content="Renderizar otro", on_click=otra)],
+            actions=[ft.FilledButton(content="Close app", on_click=cerrar),
+                     ft.OutlinedButton(content="Render another", on_click=otra)],
         ))
 
     # ------------------------------------------------------ Navegación pasos
     pasos_row = ft.Row(alignment=ft.MainAxisAlignment.CENTER, spacing=48)
     texto_contador = ft.Text(color=ft.Colors.ON_SURFACE_VARIANT)
-    btn_atras = ft.OutlinedButton(content="Atrás", on_click=lambda e: mostrar_paso(estado["paso"] - 1))
-    btn_sig = ft.FilledButton(content="Siguiente", on_click=lambda e: siguiente())
-    btn_enviar = ft.FilledButton(content="Renderizar", icon=ft.Icons.MOVIE_CREATION_OUTLINED,
+    btn_atras = ft.OutlinedButton(content="Back", on_click=lambda e: mostrar_paso(estado["paso"] - 1))
+    btn_sig = ft.FilledButton(content="Next", on_click=lambda e: siguiente())
+    btn_enviar = ft.FilledButton(content="Render", icon=ft.Icons.MOVIE_CREATION_OUTLINED,
                                  on_click=renderizar)
 
     def validar_paso(n):
         if n != 0:
             return True
-        emisor.error_text = None if emisor.value else "Elige una opción"
-        receptor.error_text = None if receptor.value else "Elige una opción"
+        emisor.error_text = None if emisor.value else "Choose an option"
+        receptor.error_text = None if receptor.value else "Choose an option"
         page.update()
         return bool(emisor.value and receptor.value)
 
@@ -769,7 +767,7 @@ async def main(page: ft.Page):
         btn_atras.visible = n > 0
         btn_sig.visible = n < len(PASOS) - 1
         btn_enviar.visible = n == len(PASOS) - 1
-        texto_contador.value = f"Paso {n + 1} de {len(PASOS)}"
+        texto_contador.value = f"Step {n + 1} of {len(PASOS)}"
         items = []
         for i, nombre in enumerate(PASOS):
             activo, hecho = i == n, i < n
@@ -790,13 +788,13 @@ async def main(page: ft.Page):
 
     # ----------------------------------------------------------- Cabecera/tema
     boton_tema = ft.IconButton(icon=ft.Icons.DARK_MODE_OUTLINED, icon_color=ft.Colors.WHITE,
-                               tooltip="Cambiar a modo oscuro")
+                               tooltip="Switch to dark mode")
 
     def cambiar_tema(e):
         oscuro = page.theme_mode == ft.ThemeMode.DARK
         page.theme_mode = ft.ThemeMode.LIGHT if oscuro else ft.ThemeMode.DARK
         boton_tema.icon = ft.Icons.DARK_MODE_OUTLINED if oscuro else ft.Icons.LIGHT_MODE_OUTLINED
-        boton_tema.tooltip = "Cambiar a modo oscuro" if oscuro else "Cambiar a modo claro"
+        boton_tema.tooltip = "Switch to dark mode" if oscuro else "Switch to light mode"
         page.update()
 
     boton_tema.on_click = cambiar_tema
@@ -823,9 +821,9 @@ async def main(page: ft.Page):
         ft.Row(
             [
                 ft.Column([
-                    ft.Text("Procesamiento de video", size=28, weight=ft.FontWeight.BOLD,
+                    ft.Text("Video processing", size=28, weight=ft.FontWeight.BOLD,
                             color=ft.Colors.WHITE),
-                    ft.Text("Formulario para facilitar el procesamiento de videos.",
+                    ft.Text("Form to simplify video processing.",
                             color=ft.Colors.WHITE_70),
                 ], spacing=4, expand=True),
                 select_lang,
