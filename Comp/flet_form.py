@@ -1,5 +1,5 @@
 """
-Formulario de procesamiento de vídeo con Flet 1.x (equivalente a form.py + formulario.html).
+Formulario de procesamiento de vídeo con Flet 1.x.
 
 Requisitos:   pip install -U flet
 Ejecutar:     python app_flet.py
@@ -12,7 +12,9 @@ import json
 from dataclasses import asdict
 from pathlib import Path
 
-# --- Bootstrap del API de scripts de Resolve (igual que en form.py) ---------
+import gettext
+
+# --- Bootstrap del API de scripts de Resolve ---------
 _API_RESOLVE = Path(os.environ.get(
     "RESOLVE_SCRIPT_API",
     r"C:\ProgramData\Blackmagic Design\DaVinci Resolve\Support\Developer\Scripting",
@@ -27,10 +29,17 @@ os.environ.setdefault(
 )
 
 import flet as ft
-from test import (
-    get_clips, create_render_jobs, render_jobs, settings,
-    init_davinci_project, delete_all_jobs, show_render_prev,
-)
+
+# test.py importa DaVinciResolveScript, que falla si Resolve no está instalado.
+# El formulario debe abrirse igualmente, así que el import es opcional.
+try:
+    import test as resolve_api
+except BaseException as _ex:
+    resolve_api = None
+    ERROR_RESOLVE = f"{type(_ex).__name__}: {_ex}"
+else:
+    ERROR_RESOLVE = ""
+
 from upload_video import upload_video
 
 PERSONAS = ["Laura", "Juan", "María", "Pedro"]
@@ -49,6 +58,9 @@ EXTENSIONES_IMG = {".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp"}
 DIR_SCRIPT = Path(__file__).resolve().parent
 PLANTILLA_CONFIG = DIR_SCRIPT / "settings_layout.json"
 
+URL_DAVINCI = "https://www.blackmagicdesign.com/products/davinciresolve"
+URL_API_RESOLVE = "https://wiki.dvresolve.com/developer-docs/scripting-api"
+
 
 # ---------------------------------------------------------------------------
 # Trabajo bloqueante (Resolve / YouTube). Se ejecuta con asyncio.to_thread,
@@ -63,18 +75,46 @@ def ruta_render(carpeta, nombre):
     return max(candidatos, key=lambda a: a.stat().st_mtime) if candidatos else None
 
 
+def estado_resolve() -> str:
+    """Devuelve '' si Resolve Studio puede usarse, o el motivo por el que no."""
+    if resolve_api is None:
+        print(f"No se pudo importar test.py: {ERROR_RESOLVE}")
+        return "No se encontró DaVinci Resolve Studio en este equipo."
+    try:
+        import DaVinciResolveScript as dvr
+        resolve = dvr.scriptapp("Resolve")
+    except BaseException as ex:
+        print(f"No se pudo cargar el API de scripts de Resolve: {ex}")
+        return "No se pudo cargar el API de scripts de DaVinci Resolve Studio."
+    if resolve is None:
+        return "DaVinci Resolve Studio está instalado, pero no está abierto."
+    try:
+        gestor = resolve.GetProjectManager()
+        proyecto = gestor.GetCurrentProject() if gestor else None
+    except BaseException as ex:
+        print(f"No se pudo conectar con Resolve: {ex}")
+        return "No se pudo conectar con DaVinci Resolve Studio."
+    if proyecto is None:
+        return ("DaVinci Resolve Studio está abierto, pero no hay ningún "
+                "proyecto cargado.")
+    return ""
+
+
 def leer_resolve() -> list[dict]:
     """Equivalente a la ruta GET / de Flask."""
-    init_davinci_project()
-    delete_all_jobs()
-    grupos = get_clips()
-    show_render_prev(grupos)
+    motivo = estado_resolve()
+    if motivo:
+        raise RuntimeError(motivo)
+    resolve_api.init_davinci_project()
+    resolve_api.delete_all_jobs()
+    grupos = resolve_api.get_clips()
+    resolve_api.show_render_prev(grupos)
     return [
         {
             **asdict(g),
             "thumbnail": b"",   # bytes de la imagen elegida
             "settings": {
-                **settings,
+                **resolve_api.settings,
                 "MarkIn": g.start,
                 "MarkOut": g.end,
                 "CustomName": g.title,
@@ -83,16 +123,30 @@ def leer_resolve() -> list[dict]:
         for g in grupos
     ]
 
+def send_whatsapp(emisor, receptor, observacion, sesion_mia, idioma_msj, yt_ids):
+    """Envio automatizado de mensajes de WhatsApp""" # TODO 
+    pass
 
-def trabajo_render(a_renderizar, subir_youtube, apagar_pc) -> str:
+def trabajo_render( 
+        emisor,
+        receptor,
+        observacion,
+        sesion_mia,
+        idioma_msj,
+        a_renderizar,
+        subir_youtube, apagar_pc
+) -> str:
     """Renderiza, sube y (opcional) apaga. Devuelve un mensaje de error o ''."""
     mensaje = ""
+    if resolve_api is None:
+        return "DaVinci Resolve Studio no está disponible."
     try:
-        jobs = create_render_jobs(a_renderizar)
-        ok = bool(jobs) and render_jobs(jobs)  # BLOQUEA hasta terminar
+        jobs = resolve_api.create_render_jobs(a_renderizar)
+        ok = bool(jobs) and resolve_api.render_jobs(jobs)  # BLOQUEA hasta terminar
         if not ok:
             return "El render no terminó correctamente."
         if subir_youtube:
+            yt_ids = []
             for c in a_renderizar:
                 s = c["settings"]
                 nombre = s.get("CustomName") or c["title"]
@@ -101,10 +155,11 @@ def trabajo_render(a_renderizar, subir_youtube, apagar_pc) -> str:
                     print(f"No encuentro el vídeo renderizado de «{c['title']}»")
                     mensaje = "Algún vídeo renderizado no se encontró para subirlo."
                     continue
-                upload_video(
+                yt_ids.append(upload_video(
                     str(ruta), c["title"], "", "UNLISTED",
                     miniatura=c["thumbnail"] or None,
-                )
+                ))
+            send_whatsapp(emisor, receptor, observacion, sesion_mia, idioma_msj, yt_ids)
         if apagar_pc:
             os.system("shutdown /s /t 60")  # cancelar con: shutdown /a
     except Exception as ex:
@@ -166,7 +221,7 @@ async def main(page: ft.Page):
             print(f"settings.json no es válido ({ex}); se usa la plantilla.")
             return plantilla
 
-    page.title = "Procesamiento de video"
+    page.title = _("Procesamiento de video")
     page.theme_mode = ft.ThemeMode.LIGHT
     page.theme = ft.Theme(color_scheme_seed=ACENTO)
     page.dark_theme = ft.Theme(color_scheme_seed=ACENTO)
@@ -180,6 +235,7 @@ async def main(page: ft.Page):
     # Preferencias de vídeo que no se editan en un campo del formulario.
     prefs = {"thumbnail_path": "", "destiny_dir": ""}
     selector = ft.FilePicker()  # servicio: se mantiene la referencia
+    lanzador = ft.UrlLauncher()  # servicio para abrir los enlaces de ayuda
 
     # ------------------------------------------------------------------ Paso 1
     emisor = ft.Dropdown(label="Emisor", expand=True,
@@ -242,6 +298,45 @@ async def main(page: ft.Page):
             action=accion,
             on_action=(lambda e: callback()) if callback else None,
             duration=8000,
+        ))
+
+    def boton_enlace(texto, url, icono):
+        async def abrir(e):
+            try:
+                await lanzador.launch_url(url)
+            except BaseException as ex:
+                aviso(f"No se pudo abrir el enlace: {ex}")
+        return ft.TextButton(content=texto, icon=icono, on_click=abrir)
+
+    def mostrar_requisitos_resolve(motivo):
+        page.show_dialog(ft.AlertDialog(
+            modal=True,
+            icon=ft.Icon(icon=ft.Icons.ERROR_OUTLINE),
+            icon_color=ft.Colors.ERROR,
+            title=ft.Text("Necesitas DaVinci Resolve Studio"),
+            content=ft.Column(
+                [
+                    ft.Text(motivo),
+                    ft.Text("Este formulario renderiza los vídeos con DaVinci Resolve Studio. "
+                            "Instálalo, ábrelo con un proyecto cargado y vuelve a pulsar "
+                            "Renderizar."),
+                    ft.Text("Si ya lo tienes instalado, revisa Preferencias > Sistema > "
+                            "General para permitir el acceso desde aplicaciones externas.",
+                            color=ft.Colors.ON_SURFACE_VARIANT, size=12),
+                    ft.Column(
+                        [
+                            boton_enlace("Documentación del API de scripting",
+                                         URL_API_RESOLVE, ft.Icons.MENU_BOOK_OUTLINED),
+                            boton_enlace("Página oficial de DaVinci Resolve",
+                                         URL_DAVINCI, ft.Icons.OPEN_IN_NEW),
+                        ],
+                        spacing=0,
+                    ),
+                ],
+                tight=True, spacing=14, width=460,
+            ),
+            actions=[ft.FilledButton(content="Entendido",
+                                     on_click=lambda e: page.pop_dialog())],
         ))
 
     def persona_valida(valor):
@@ -571,6 +666,10 @@ async def main(page: ft.Page):
 
     # ---------------------------------------------------------------- Render
     async def renderizar(e):
+        motivo = await asyncio.to_thread(estado_resolve)
+        if motivo:
+            mostrar_requisitos_resolve(motivo)
+            return
         if not validar_paso(0):
             mostrar_paso(0)
             return
@@ -602,7 +701,15 @@ async def main(page: ft.Page):
         page.update()  # que el diálogo se vea antes de empezar el trabajo bloqueante
 
         mensaje_error = await asyncio.to_thread(
-            trabajo_render, a_renderizar, bool(subir_yt.value), bool(apagar_pc.value))
+            trabajo_render,
+            emisor.value,
+            receptor.value,
+            observacion.value,
+            sesion_mia.value,
+            idioma_msj.value, 
+            a_renderizar, 
+            bool(subir_yt.value), 
+            bool(apagar_pc.value))
 
         page.pop_dialog()
         mostrar_resultado(mensaje_error)
@@ -694,6 +801,24 @@ async def main(page: ft.Page):
 
     boton_tema.on_click = cambiar_tema
 
+    # ----------------------------------------------------------- Cebecera/idioma
+    select_lang = ft.Dropdown(value="es",
+                             options=[ft.DropdownOption(key=k, text=v) for k, v in IDIOMAS],
+                             color=ft.Colors.WHITE,
+                             border_color=ft.Colors.WHITE,
+                             bgcolor=ft.Colors.WHITE,
+                             fill_color=ft.Colors.WHITE
+                            #  border=ft.BorderSide(color=ft.Colors.WHITE)
+                             )
+
+    def change_language(e: ft.ControlEvent):
+        print(e.control.value);
+
+
+    select_lang.on_select = change_language
+
+    
+
     cabecera = ft.Container(
         ft.Row(
             [
@@ -703,6 +828,7 @@ async def main(page: ft.Page):
                     ft.Text("Formulario para facilitar el procesamiento de videos.",
                             color=ft.Colors.WHITE_70),
                 ], spacing=4, expand=True),
+                select_lang,
                 boton_tema,
             ],
             vertical_alignment=ft.CrossAxisAlignment.START,
@@ -717,7 +843,7 @@ async def main(page: ft.Page):
         bgcolor=ft.Colors.SURFACE_CONTAINER_HIGHEST,
     )
 
-    # Tarjeta redondeada con tamaño fijo, como un formulario de login
+    # Tarjeta redondeada con tamaño fijo.
     tarjeta = ft.Container(
         content=ft.Column(
             [
