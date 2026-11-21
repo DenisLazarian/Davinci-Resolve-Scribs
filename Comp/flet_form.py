@@ -3,7 +3,11 @@ Formulario de procesamiento de vídeo con Flet 1.x.
 
 Requisitos:   pip install -U flet
 Ejecutar:     python app_flet.py
-Debe estar junto a test.py y upload_video.py (se reutilizan tal cual).
+Debe estar junto a davinci_render.py y upload_video.py (se reutilizan tal cual).
+
+con internacionalizacion: $env:LANG='ca' ; python flet_form.py
+
+Expresion regular para buscar string : comentado en start_form.bat
 """
 import asyncio
 import os
@@ -28,10 +32,10 @@ os.environ.setdefault(
 
 import flet as ft
 
-# test.py importa DaVinciResolveScript, que falla si Resolve no está instalado.
+# davinci_render.py importa DaVinciResolveScript, que falla si Resolve no está instalado.
 # El formulario debe abrirse igualmente, así que el import es opcional.
 try:
-    import test as resolve_api
+    import davinci_render as resolve_api
 except BaseException as _ex:
     resolve_api = None
     ERROR_RESOLVE = f"{type(_ex).__name__}: {_ex}"
@@ -39,6 +43,13 @@ else:
     ERROR_RESOLVE = ""
 
 from upload_video import upload_video
+
+import gettext
+
+# Ruta absoluta: funciona tanto si lanzas el script desde Comp como desde la raíz.
+DIR_SCRIPT = Path(__file__).resolve().parent
+LOCALEDIR = DIR_SCRIPT / "locales"
+gettext.install(domain="dialogs", localedir=str(LOCALEDIR))
 
 PERSONAS = ["Laura", "Juan", "María", "Pedro"]
 IDIOMAS = [("es", "Español"), ("ca", "Català"), ("en", "English")]
@@ -53,7 +64,6 @@ VENTANA_COMPACTA = 600  # por debajo de este ancho la tarjeta ocupa toda la vent
 
 EXTENSIONES_IMG = {".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp"}
 
-DIR_SCRIPT = Path(__file__).resolve().parent
 PLANTILLA_CONFIG = DIR_SCRIPT / "settings_layout.json"
 
 URL_DAVINCI = "https://www.blackmagicdesign.com/products/davinciresolve"
@@ -76,7 +86,7 @@ def ruta_render(carpeta, nombre):
 def estado_resolve() -> str:
     """Devuelve '' si Resolve Studio puede usarse, o el motivo por el que no."""
     if resolve_api is None:
-        print(f"Could not import test.py: {ERROR_RESOLVE}")
+        print(f"Could not import davinci_render.py: {ERROR_RESOLVE}")
         return "DaVinci Resolve Studio was not found on this computer."
     try:
         import DaVinciResolveScript as dvr
@@ -219,7 +229,7 @@ async def main(page: ft.Page):
             print(f"settings.json is not valid ({ex}); using the template.")
             return plantilla
 
-    page.title = "Video processing"
+    page.title = _(("Video processing"))
     page.theme_mode = ft.ThemeMode.LIGHT
     page.theme = ft.Theme(color_scheme_seed=ACENTO)
     page.dark_theme = ft.Theme(color_scheme_seed=ACENTO)
@@ -236,21 +246,21 @@ async def main(page: ft.Page):
     lanzador = ft.UrlLauncher()  # servicio para abrir los enlaces de ayuda
 
     # ------------------------------------------------------------------ Paso 1
-    emisor = ft.Dropdown(label="Sender", expand=True,
+    emisor = ft.Dropdown(label=_("Sender"), expand=True,
                          options=[ft.DropdownOption(key=p, text=p) for p in PERSONAS])
-    receptor = ft.Dropdown(label="Recipient", expand=True,
+    receptor = ft.Dropdown(label=_("Recipient"), expand=True,
                            options=[ft.DropdownOption(key=p, text=p) for p in PERSONAS])
-    observacion = ft.TextField(label="Notes", multiline=True, min_lines=4, max_lines=6)
-    sesion_mia = ft.Checkbox(label="This session belongs to me.")
-    idioma_msj = ft.Dropdown(label="Message language", value="es",
+    observacion = ft.TextField(label=_("Notes"), multiline=True, min_lines=4, max_lines=6)
+    sesion_mia = ft.Checkbox(label=_("This session belongs to me."))
+    idioma_msj = ft.Dropdown(label=_("Message language"), value="es",
                              options=[ft.DropdownOption(key=k, text=v) for k, v in IDIOMAS])
-    guardar_prefs = ft.Checkbox(label="Save preferences for the next form")
+    guardar_prefs = ft.Checkbox(label=_("Save preferences for the next form"))
 
     paso1 = ft.Column(
         [
-            ft.Text("Notification", size=20, weight=ft.FontWeight.BOLD),
-            ft.Text("Specify your name as the sender and who the notification is addressed to. "
-                    "The message will be sent via WhatsApp.",
+            ft.Text(_("Notification"), size=20, weight=ft.FontWeight.BOLD),
+            ft.Text(_("Specify your name as the sender and who the notification is addressed to. "
+                    "The message will be sent via WhatsApp."),
                     color=ft.Colors.ON_SURFACE_VARIANT),
             ft.Row([emisor, receptor]),
             observacion,
@@ -262,27 +272,27 @@ async def main(page: ft.Page):
     )
 
     # ------------------------------------------------------------------ Paso 2
-    subir_yt = ft.Checkbox(label="Upload directly to YouTube")
-    apagar_pc = ft.Checkbox(label="Shut down PC when finished (60 s delay)")
+    subir_yt = ft.Checkbox(label=_("Upload directly to YouTube"))
+    apagar_pc = ft.Checkbox(label=_("Shut down PC when finished (60 s delay)"))
     lista = ft.Column(spacing=10)
     contador_clips = ft.Text(color=ft.Colors.ON_SURFACE_VARIANT, size=13)
-    lista_vacia = ft.Text("No clips left in the list.", visible=False,
+    lista_vacia = ft.Text(_("No clips left in the list."), visible=False,
                           text_align=ft.TextAlign.CENTER)
     error_carga = ft.Text(color=ft.Colors.ERROR, visible=False)
 
     paso2 = ft.Column(
         [
-            ft.Text("Processing", size=20, weight=ft.FontWeight.BOLD),
-            ft.Text("The clips that will be processed are listed here, and their "
-                    "properties can be edited.", color=ft.Colors.ON_SURFACE_VARIANT),
+            ft.Text(_("Processing"), size=20, weight=ft.FontWeight.BOLD),
+            ft.Text(_("The clips that will be processed are listed here, and their "
+                    "properties can be edited."), color=ft.Colors.ON_SURFACE_VARIANT),
             ft.Row([subir_yt, apagar_pc], wrap=True),
-            ft.Row([ft.Text("Detected clips", weight=ft.FontWeight.W_600), contador_clips],
+            ft.Row([ft.Text(("Detected clips"), weight=ft.FontWeight.W_600), contador_clips],
                    alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
             error_carga,
             lista,
             lista_vacia,
-            ft.Text("Click a thumbnail or a title to change it. The pencil opens the "
-                    "render properties and the ✕ discards the clip group.",
+            ft.Text(_("Click a thumbnail or a title to change it. The pencil opens the "
+                    "render properties and the ✕ discards the clip group."),
                     size=12, color=ft.Colors.ON_SURFACE_VARIANT),
         ],
         spacing=14,
@@ -821,9 +831,9 @@ async def main(page: ft.Page):
         ft.Row(
             [
                 ft.Column([
-                    ft.Text("Video processing", size=28, weight=ft.FontWeight.BOLD,
+                    ft.Text(_("Video processing"), size=28, weight=ft.FontWeight.BOLD,
                             color=ft.Colors.WHITE),
-                    ft.Text("Form to simplify video processing.",
+                    ft.Text(_("Form to simplify %s.") % _("Video processing").lower(),
                             color=ft.Colors.WHITE_70),
                 ], spacing=4, expand=True),
                 select_lang,
