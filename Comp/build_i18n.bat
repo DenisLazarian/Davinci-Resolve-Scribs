@@ -1,5 +1,18 @@
 @echo off
+chcp 65001 >nul
 setlocal EnableExtensions
+set "PYTHONUTF8=1"
+set "PYTHONIOENCODING=utf-8"
+
+rem =====================================================================
+rem  UTF-8: consola, Python y este fichero usan UTF-8 para representar
+rem  U+2715 (✕) en la salida y en los .pot/.po sin mojibake.
+rem  Guardar este .bat como UTF-8 (sin BOM).
+rem =====================================================================
+
+rem Usar para buscar string en prints, logs o elementos de representacion flet.
+rem (?:\b(?:label|text|value|title|subtitle|tooltip|hint_text|helper_text|error_text|prefix_text|suffix_text|caption|content)\s*=|\b(?:ft\.)?(?:Text|Markdown|ElevatedButton|FilledButton|OutlinedButton|TextButton)\s*\()\s*[fFrRbBuU]{0,2}(?:"""[\s\S]*?"""|'''[\s\S]*?'''|"(?:\\.|[^"\\\r\n])*"|'(?:\\.|[^'\\\r\n])*')
+
 
 rem =====================================================================
 rem  Genera/actualiza locales\dialogs.pot a partir de ficheros .py
@@ -33,12 +46,12 @@ if "%~1"=="" goto :pedir_source
 :args
 set "HUBO_PARAM=1"
 if /i not "%~x1"==".py" (
-    echo ERROR: "%~1" no es un fichero .py. Debe pasar archivos .py.
+    echo ✕ ERROR: "%~1" no es un fichero .py. Debe pasar archivos .py.
     echo.
     goto :pedir_source
 )
 if not exist "%~1" (
-    echo ERROR: no existe "%~1".
+    echo ✕ ERROR: no existe "%~1".
     echo.
     goto :pedir_source
 )
@@ -51,7 +64,7 @@ goto :have_sources
 if defined HUBO_PARAM (
     echo Introduce una ruta valida, o pulsa Enter para cancelar.
 ) else (
-    echo ERROR: no se ha pasado ningun archivo .py.
+    echo ✕ ERROR: no se ha pasado ningun archivo .py.
     echo.
 )
 :pedir
@@ -60,11 +73,11 @@ set /p "FUENTE=Introduce la ruta del archivo .py (Enter para cancelar): "
 if not defined FUENTE goto :no_source
 set "FUENTE=%FUENTE:"=%"
 if /i not "%FUENTE:~-3%"==".py" (
-    echo ERROR: la extension debe ser .py.
+    echo ✕ ERROR: la extension debe ser .py.
     goto :pedir
 )
 if not exist "%FUENTE%" (
-    echo ERROR: no existe "%FUENTE%".
+    echo ✕ ERROR: no existe "%FUENTE%".
     goto :pedir
 )
 set "FUENTES="%FUENTE%""
@@ -103,15 +116,15 @@ pause
 exit /b 0
 
 :no_tools
-echo ERROR: no encuentro pygettext.py / msgfmt.py en "%TOOLS%"
+echo ✕ ERROR: no encuentro pygettext.py / msgfmt.py en "%TOOLS%"
 goto :fail
 
 :no_source
-echo ERROR: no hay ficheros .py de entrada.
+echo ✕ ERROR: no hay ficheros .py de entrada.
 goto :fail
 
 :error
-echo ERROR: fallo al generar los catalogos.
+echo ✕ ERROR: fallo al generar los catalogos.
 goto :fail
 
 :fail

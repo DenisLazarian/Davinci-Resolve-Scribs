@@ -12,4 +12,3 @@ set "PYTHONPATH=%RESOLVE_SCRIPT_API%\Modules;%PYTHONPATH%"
 
 endlocal
 
-rem (?:\b(?:label|text|value|title|subtitle|tooltip|hint_text|helper_text|error_text|prefix_text|suffix_text|caption|content)\s*=|\b(?:ft\.)?(?:Text|Markdown|ElevatedButton|FilledButton|OutlinedButton|TextButton)\s*\()\s*[fFrRbBuU]{0,2}(?:"""[\s\S]*?"""|'''[\s\S]*?'''|"(?:\\.|[^"\\\r\n])*"|'(?:\\.|[^'\\\r\n])*')
