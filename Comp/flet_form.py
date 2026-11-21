@@ -345,7 +345,7 @@ async def main(page: ft.Page):
                          options=[ft.DropdownOption(key=p, text=p) for p in PERSONAS])
     receptor = ft.Dropdown(label=_("Recipient"), expand=True,
                            options=[ft.DropdownOption(key=p, text=p) for p in PERSONAS])
-    observacion = ft.TextField(label=_("Notes"), multiline=True, min_lines=4, max_lines=6)
+    observacion = ft.TextField(label=_("Notes"), multiline=True, min_lines=4, max_lines=6, value="")
     sesion_mia = ft.Checkbox(label=_("This session belongs to me."))
     idioma_msj = ft.Dropdown(label=_("Message language"), value="es",
                              options=[ft.DropdownOption(key=k, text=v) for k, v in IDIOMAS])
@@ -358,7 +358,7 @@ async def main(page: ft.Page):
                     "The message will be sent via WhatsApp."),
                     color=ft.Colors.ON_SURFACE_VARIANT),
             ft.Row([emisor, receptor]),
-            observacion,
+            # observacion,
             sesion_mia,
             idioma_msj,
             guardar_prefs,
