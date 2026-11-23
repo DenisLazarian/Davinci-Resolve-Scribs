@@ -181,25 +181,24 @@ def ruta_render(carpeta, nombre):
 def estado_resolve() -> str:
     """Devuelve '' si Resolve Studio puede usarse, o el motivo por el que no."""
     if resolve_api is None:
-        print(f"Could not import davinci_render.py: {ERROR_RESOLVE}")
-        return "DaVinci Resolve Studio was not found on this computer."
+        print(_("Could not import davinci_render.py: {}").format(ERROR_RESOLVE))
+        return _("DaVinci Resolve Studio was not found on this computer.")
     try:
         import DaVinciResolveScript as dvr
         resolve = dvr.scriptapp("Resolve")
     except BaseException as ex:
-        print(f"Could not load the Resolve scripting API: {ex}")
-        return "Could not load the DaVinci Resolve Studio scripting API."
+        print(_("Could not load the Resolve scripting API: {}").format(ex))
+        return _("Could not load the DaVinci Resolve Studio scripting API.")
     if resolve is None:
-        return "DaVinci Resolve Studio is installed, but it is not running."
+        return _("DaVinci Resolve Studio is installed, but it is not running.")
     try:
         gestor = resolve.GetProjectManager()
         proyecto = gestor.GetCurrentProject() if gestor else None
     except BaseException as ex:
-        print(f"Could not connect to Resolve: {ex}")
-        return "Could not connect to DaVinci Resolve Studio."
+        print(_("Could not connect to Resolve: {}").format(ex))
+        return _("Could not connect to DaVinci Resolve Studio.")
     if proyecto is None:
-        return ("DaVinci Resolve Studio is open, but no project is "
-                "loaded.")
+        return _("DaVinci Resolve Studio is open, but no project is loaded.")
     return ""
 
 
@@ -387,7 +386,7 @@ async def main(page: ft.Page):
             lista,
             lista_vacia,
             ft.Text(_("Click a thumbnail or a title to change it. The pencil opens the "
-                    "render properties and the {} discards the clip group.".format("✕")),
+                    "render properties and the {} discards the clip group.").format("✕"),
                     size=12, color=ft.Colors.ON_SURFACE_VARIANT),
         ],
         spacing=14,

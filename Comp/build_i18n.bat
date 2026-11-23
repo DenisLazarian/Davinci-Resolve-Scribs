@@ -6,7 +6,7 @@ set "PYTHONIOENCODING=utf-8"
 
 rem =====================================================================
 rem  UTF-8: consola, Python y este fichero usan UTF-8 para representar
-rem  U+2715 (✕) en la salida y en los .pot/.po sin mojibake.
+rem  U+2715 (✕) y los acentos (0xC3 = C3 xx en UTF-8) sin mojibake.
 rem  Guardar este .bat como UTF-8 (sin BOM).
 rem =====================================================================
 
@@ -86,17 +86,22 @@ set "FUENTES="%FUENTE%""
 if not defined FUENTES goto :no_source
 
 echo.
-echo [1/3] Generando "%POT%"
+echo [1/4] Generando "%POT%"
 "%PY%" "%PYGETTEXT%" -v -o "%POT%" %FUENTES%
 if errorlevel 1 goto :error
 
 rem --- la cabecera de pygettext dice cp1252; la pasamos a UTF-8 ----------
-echo [2/3] Ajustando charset a UTF-8
+echo [2/4] Ajustando charset a UTF-8
 "%PY%" -c "from pathlib import Path; p=Path(r'%POT%'); t=p.read_text(encoding='utf-8'); p.write_text(t.replace('charset=cp1252','charset=UTF-8'), encoding='utf-8')"
 if errorlevel 1 goto :error
 
+rem --- reconstruir cabeceras .po limpias (UTF-8, sin 0xC3 sueltos) --------
+echo [3/4] Normalizando cabeceras .po
+"%PY%" "%BASE%normalizar_po.py" "%BASE%locales"
+if errorlevel 1 goto :error
+
 rem --- compilar los .po que estan dentro de LC_MESSAGES ------------------
-echo [3/3] Compilando .mo desde LC_MESSAGES
+echo [4/4] Compilando .mo desde LC_MESSAGES
 for /d %%L in ("%BASE%locales\*") do (
     if exist "%%~L\LC_MESSAGES\" (
         for %%P in ("%%~L\LC_MESSAGES\dialogs*.po") do (

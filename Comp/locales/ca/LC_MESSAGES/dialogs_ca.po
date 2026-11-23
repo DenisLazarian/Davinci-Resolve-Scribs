@@ -5,21 +5,376 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2026-11-21 16:24+0100\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language: es\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: ca\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: pygettext.py 1.5\n"
 
 
+
+
+#: .\flet_form.py:184
+msgid "Could not import davinci_render.py: {}"
+msgstr "No es va poder importar davinci_render.py: {}"
+
+#: .\flet_form.py:185
+msgid "DaVinci Resolve Studio was not found on this computer."
+msgstr "No s'ha trobat DaVinci Resolve Studio en el teu equip."
+
+#: .\flet_form.py:190
+msgid "Could not lloeu the Resolve scripting API: {}"
+msgstr "No es puc carregar la API de scripting de Resolve: {}"
+
+#: .\flet_form.py:191
+msgid "Could not lloeu the DaVinci Resolve Studio scripting API."
+msgstr "No es va poder carregar la API de scripting de DaVinci Resolve Studio"
+
+#: .\flet_form.py:193
+msgid "DaVinci Resolve Studio is installed, but it is not running."
+msgstr "DaVinci Resolve Studio aquesta instal·lada, però no s'esta executant."
+
+#: .\flet_form.py:198
+msgid "Could not connect to Resolve: {}"
+msgstr "No es va poder connectar amb Resolve: {}"
+
+#: .\flet_form.py:199
+msgid "Could not connect to DaVinci Resolve Studio."
+msgstr "No es va poder connectar amb Davinci Resolve Studio."
+
+#: .\flet_form.py:201
+msgid "DaVinci Resolve Studio is open, but no project is loaded."
+msgstr "DaVinci Resolve Studio hi és obert, però no s'ha carregat cap projecte."
+
+
 #: .\Comp\flet_form.py:226
 msgid "Video processing"
 msgstr "Processament de vídeos"
 
-#: .\flet_form.py:832
-msgid "Form to simplify %s %d %d."
-msgstr "Formulari per simplificar el %s %d %d."
+
+#: .\Comp\flet_form.py:344 .\Comp\flet_form.py:797
+msgid "Sender"
+msgstr "Emissor"
+
+#: .\Comp\flet_form.py:346 .\Comp\flet_form.py:797
+msgid "Recipient"
+msgstr "Receptor"
+
+#: .\Comp\flet_form.py:348
+msgid "Notes"
+msgstr "Observacions"
+
+#: .\Comp\flet_form.py:349
+msgid "This session belongs to me."
+msgstr "Aquesta sessió em pertany."
+
+#: .\Comp\flet_form.py:350
+msgid "Message language"
+msgstr "Llengua del missatge"
+
+#: .\Comp\flet_form.py:352
+msgid "Save preferences for the next form"
+msgstr "Guardar preferéncies"
+
+#: .\Comp\flet_form.py:356
+msgid "Notification"
+msgstr "Notificació"
+
+#: .\Comp\flet_form.py:357
+msgid "Specify your name as the sender and who the notification is addressed to. The message will be sent via WhatsApp."
+msgstr "Especifica el teu nom com a emissor i ha qui es dirigeix la notificació. EL Missatge s'enviarà través de WhatsApp"
+
+#: .\Comp\flet_form.py:370
+msgid "Upload directly to YouTube"
+msgstr "Pujar directament a YouYube"
+
+#: .\Comp\flet_form.py:371
+msgid "Shut down PC when finished (60 s delay)"
+msgstr "Apagar PC en acabar (60 seg. de marge)"
+
+#: .\Comp\flet_form.py:374
+msgid "No clips left in the list."
+msgstr "No hi ha clips en el llistat."
+
+#: .\Comp\flet_form.py:380
+msgid "Processing"
+msgstr "Processament"
+
+#: .\Comp\flet_form.py:381
+msgid "The clips that will be processed are listed here, and their properties can be edited."
+msgstr "Els clips que es processessin figuren en la llista, es poden modificar les seves propietats."
+
+#: .\Comp\flet_form.py:384
+msgid "Detected clips"
+msgstr "Clips detectats"
+
+#: flet_form.py:389
+msgid "Click a thumbnail or a title to change it. The pencil opens the render properties and the {} discards the clip group."
+msgstr "Premeu la miniatura o el títol per canviar-los. El llapis obre les seves propietats i la {} descarta el grup de clips."
+
+
+#: .\Comp\flet_form.py:419
+msgid "DaVinci Resolve Studio is required"
+msgstr "Es requereix Davinci Resolve Studio"
+
+#: .\Comp\flet_form.py:423
+msgid "This form renders videos with DaVinci Resolve Studio. Install it, open it with a project loaded and press Render again."
+msgstr "Aquest formulari renderitzés els vídeos editats amb Davinci Resolve Studio. instal·la'l, obre un projecte i torna a prémer Renderitzar."
+
+#: .\Comp\flet_form.py:426
+msgid "If you already have it installed, check Preferences > System > General to allow access from external applications."
+msgstr "Si ja ho té instal·lat, comprova Preferències > Sistema > General per a permetre l'execució mitjançant aplicacions externes."
+
+#: .\Comp\flet_form.py:431
+msgid "Scripting API documentation"
+msgstr "Documentació de la Api de Scripting."
+
+#: .\Comp\flet_form.py:433
+msgid "Official DaVinci Resolve website"
+msgstr "Web oficial de DaVinci Resolve"
+
+#: .\Comp\flet_form.py:441
+msgid "Got it"
+msgstr "Entès"
+
+
+#: .\Comp\flet_form.py:505
+msgid "Could not read DaVinci Resolve: %s"
+msgstr "No s'ha detectat DaVinci Resolve: %s"
+
+#: .\Comp\flet_form.py:505
+msgid "no connection"
+msgstr "sense connexió"
+
+#: .\Comp\flet_form.py:513 .\Comp\flet_form.py:542 .\Comp\flet_form.py:718
+#: .\Comp\flet_form.py:761
+msgid "frames"
+msgstr "fotogrames"
+
+#: .\Comp\flet_form.py:514
+msgid "No clips"
+msgstr "No hi ha clips"
+
+#: .\Comp\flet_form.py:532 .\Comp\flet_form.py:666
+msgid "Change thumbnail"
+msgstr "Canviar miniatura"
+
+#: .\Comp\flet_form.py:539
+msgid "Click to change the title"
+msgstr "Prem per a canviar el títol"
+
+#: .\Comp\flet_form.py:553 .\Comp\flet_form.py:760
+msgid "Render properties"
+msgstr "Propietats de renderitzat"
+
+#: .\Comp\flet_form.py:555
+msgid "Discard this clip group"
+msgstr "Descartar grup de clips"
+
+#: .\Comp\flet_form.py:595
+msgid "%s removed from the render."
+msgstr "%s eliminat del procés de renderitzat"
+
+#: .\Comp\flet_form.py:595 .\Comp\*flet_*form.py:662
+msgid "Undo"
+msgstr "Desfer"
+
+#: .\Comp\flet_form.py:601
+msgid "No file selected"
+msgstr "No s'ha seleccionat ningun fitxer"
+
+#: .\Comp\flet_form.py:612
+msgid "No image"
+msgstr "Sense imatge"
+
+#: .\Comp\flet_form.py:616
+msgid "Apply to all clips (%s)"
+msgstr "Aplicar per a tots els clips (%s)"
+
+#: .\Comp\flet_form.py:628
+msgid "The file must be an image."
+msgstr "El fitxer ha de ser una imatge"
+
+#: .\Comp\flet_form.py:630
+msgid "The image is too large (2 MB maximum)."
+msgstr "La imatge és molt gran (màxim de 2 MB)"
+
+#: .\Comp\flet_form.py:641
+msgid "Choose an image before applying the changes."
+msgstr "Triï una imatge abans d'aplicar els canvis."
+
+#: .\Comp\flet_form.py:660
+msgid "Thumbnail applied to %(count)d clips."
+msgstr "Miniatura aplicat ha %(count)d clips."
+
+#: .\Comp\flet_form.py:661
+msgid "Thumbnail updated."
+msgstr "Miniatura modificada."
+
+#: .\Comp\flet_form.py:670
+msgid "Current"
+msgstr "Actual"
+
+#: .\Comp\flet_form.py:671
+msgid "New"
+msgstr "Nou"
+
+#: .\Comp\flet_form.py:673
+msgid "Choose image…"
+msgstr "Triï imatge..."
+
+#: .\Comp\flet_form.py:675
+msgid "YouTube requires at least 1280×720 px and a maximum of 2 MB."
+msgstr "YouYube requereix almenys 1280x720 px i una maximo grandària de 2 MB."
+
+#: .\Comp\flet_form.py:682 .\Comp\flet_form.py:768
+msgid "Cancel"
+msgstr "Cancel·lar"
+
+#: .\Comp\flet_form.py:683
+msgid "Apply"
+msgstr "Aplicar"
+
+#: .\Comp\flet_form.py:689
+msgid "File name"
+msgstr "Nom del fitxer"
+
+#: .\Comp\flet_form.py:691
+msgid "Width (px)"
+msgstr "Ample (px)"
+
+#: .\Comp\flet_form.py:693
+msgid "Height (px)"
+msgstr "Altura (px)"
+
+#: .\Comp\flet_form.py:695
+msgid "Destination folder"
+msgstr "Directori destino"
+
+#: .\Comp\flet_form.py:696
+msgid "Render the entire clip"
+msgstr "Renderitzar el clip complet"
+
+#: .\Comp\flet_form.py:697
+msgid "Start frame"
+msgstr "Fotograma d'Inici"
+
+#: .\Comp\flet_form.py:699
+msgid "End frame"
+msgstr "Fotograma final"
+
+#: .\Comp\flet_form.py:701
+msgid "Export video"
+msgstr "Exportar vídeo"
+
+#: .\Comp\flet_form.py:702
+msgid "Export audio"
+msgstr "Exportar àudio"
+
+#: .\Comp\flet_form.py:714
+msgid "The entire clip will be rendered, without in/out marks."
+msgstr "El clip complet sàrria renderitzat, sense marques d'entrada/sortida."
+
+#: .\Comp\flet_form.py:717
+msgid "Duration: %(frames)d %(unit)s"
+msgstr "Durada: %(frames)d %(unit)s"
+
+#: .\Comp\flet_form.py:720
+msgid "The end frame must be greater than the start frame."
+msgstr "El fotograma final ha de ser major al d'inici."
+
+#: .\Comp\flet_form.py:735
+msgid "Required"
+msgstr "Requerit"
+
+#: .\Comp\flet_form.py:737 .\Comp\flet_form.py:739
+msgid "Minimum 2"
+msgstr "Minimo 2"
+
+#: .\Comp\flet_form.py:741
+msgid "Must be greater than the start frame"
+msgstr "Ha de ser major que el fotograma d'inici."
+
+#: .\Comp\flet_form.py:769
+msgid "Save changes"
+msgstr "Guardar canvis"
+
+#: .\Comp\flet_form.py:783
+msgid "There are no clips to render."
+msgstr "No hi ha clips per a renderitzar"
+
+#: .\Comp\flet_form.py:793
+msgid "Could not save preferences: %s"
+msgstr "No s'han guardat les preferències: %s"
+
+#: .\Comp\flet_form.py:798
+msgid "Language"
+msgstr "Idioma"
+
+#: .\Comp\flet_form.py:798
+msgid "Own session"
+msgstr "Pròpia sessió"
+
+#: .\Comp\flet_form.py:799
+msgid "Notes:"
+msgstr "Observacions:"
+
+#: .\Comp\flet_form.py:803
+msgid "Rendering…"
+msgstr "Renderitzant..."
+
+#: .\Comp\flet_form.py:804
+msgid "Waiting for DaVinci Resolve…"
+msgstr "Esperant a DaVinci Resolve..."
+
+#: .\Comp\flet_form.py:837
+msgid "All done!"
+msgstr "Tot Llest!"
+
+#: .\Comp\flet_form.py:837
+msgid "Finished with warnings"
+msgstr "Finalitzant amb avisos"
+
+#: .\Comp\flet_form.py:838
+msgid "The render jobs have finished in DaVinci Resolve."
+msgstr "Els treballs de renderitzat han finalitzat en DaVinci Resolve."
+
+#: .\Comp\flet_form.py:840
+msgid "Close app"
+msgstr "Tancar app"
+
+#: .\Comp\flet_form.py:841
+msgid "Render another"
+msgstr "Renderitzar un altre procés"
+
+#: .\Comp\flet_form.py:847
+msgid "Back"
+msgstr "Atras"
+
+#: .\Comp\flet_form.py:848
+msgid "Next"
+msgstr "Següent"
+
+#: .\Comp\*flet_*form.py:849
+msgid "Render"
+msgstr "Renderitzar"
+
+#: .\Comp\flet_form.py:855 .\Comp\flet_form.py:856
+msgid "Choose an option"
+msgstr "Trii una opció"
+
+#: .\Comp\flet_form.py:878
+msgid "Step %d of %d"
+msgstr "Pas %d de %d"
+
+#: .\Comp\flet_form.py:899 .\Comp\flet_form.py:905
+msgid "Switch to dark mode"
+msgstr "Canviar a mode fosc"
+
+#: .\Comp\flet_form.py:905
+msgid "Switch to light mode"
+msgstr "Canviar a mode clar"
+
+#: .\Comp\flet_form.py:924 .\Comp\flet_form.py:934
+msgid "Form to simplify %s."
+msgstr "Formulari per simplificar %s"
