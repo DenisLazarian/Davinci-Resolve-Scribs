@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2026-11-21 19:28+0100\n"
+"POT-Creation-Date: 2026-11-22 01:28+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -15,329 +15,364 @@ msgstr ""
 "Generated-By: pygettext.py 1.5\n"
 
 
-#: Comp\flet_form.py:324 Comp\flet_form.py:919 Comp\flet_form.py:921
-#: Comp\flet_form.py:930 Comp\flet_form.py:931
+#: .\flet_form.py:184
+msgid "Could not import davinci_render.py: {}"
+msgstr ""
+
+#: .\flet_form.py:185
+msgid "DaVinci Resolve Studio was not found on this computer."
+msgstr ""
+
+#: .\flet_form.py:190
+msgid "Could not load the Resolve scripting API: {}"
+msgstr ""
+
+#: .\flet_form.py:191
+msgid "Could not load the DaVinci Resolve Studio scripting API."
+msgstr ""
+
+#: .\flet_form.py:193
+msgid "DaVinci Resolve Studio is installed, but it is not running."
+msgstr ""
+
+#: .\flet_form.py:198
+msgid "Could not connect to Resolve: {}"
+msgstr ""
+
+#: .\flet_form.py:199
+msgid "Could not connect to DaVinci Resolve Studio."
+msgstr ""
+
+#: .\flet_form.py:201
+msgid "DaVinci Resolve Studio is open, but no project is loaded."
+msgstr ""
+
+#: .\flet_form.py:326 .\flet_form.py:921 .\flet_form.py:923 .\flet_form.py:932
+#: .\flet_form.py:933
 msgid "Video processing"
 msgstr ""
 
-#: Comp\flet_form.py:341 Comp\flet_form.py:794
+#: .\flet_form.py:343 .\flet_form.py:796
 msgid "Sender"
 msgstr ""
 
-#: Comp\flet_form.py:343 Comp\flet_form.py:794
+#: .\flet_form.py:345 .\flet_form.py:796
 msgid "Recipient"
 msgstr ""
 
-#: Comp\flet_form.py:345
+#: .\flet_form.py:347
 msgid "Notes"
 msgstr ""
 
-#: Comp\flet_form.py:346
+#: .\flet_form.py:348
 msgid "This session belongs to me."
 msgstr ""
 
-#: Comp\flet_form.py:347
+#: .\flet_form.py:349
 msgid "Message language"
 msgstr ""
 
-#: Comp\flet_form.py:349
+#: .\flet_form.py:351
 msgid "Save preferences for the next form"
 msgstr ""
 
-#: Comp\flet_form.py:353
+#: .\flet_form.py:355
 msgid "Notification"
 msgstr ""
 
-#: Comp\flet_form.py:354
+#: .\flet_form.py:356
 msgid "Specify your name as the sender and who the notification is addressed to. The message will be sent via WhatsApp."
 msgstr ""
 
-#: Comp\flet_form.py:367
+#: .\flet_form.py:369
 msgid "Upload directly to YouTube"
 msgstr ""
 
-#: Comp\flet_form.py:368
+#: .\flet_form.py:370
 msgid "Shut down PC when finished (60 s delay)"
 msgstr ""
 
-#: Comp\flet_form.py:371
+#: .\flet_form.py:373
 msgid "No clips left in the list."
 msgstr ""
 
-#: Comp\flet_form.py:377
+#: .\flet_form.py:379
 msgid "Processing"
 msgstr ""
 
-#: Comp\flet_form.py:378
+#: .\flet_form.py:380
 msgid "The clips that will be processed are listed here, and their properties can be edited."
 msgstr ""
 
-#: Comp\flet_form.py:381
+#: .\flet_form.py:383
 msgid "Detected clips"
 msgstr ""
 
-#: Comp\flet_form.py:416
+#: .\flet_form.py:388
+msgid "Click a thumbnail or a title to change it. The pencil opens the render properties and the {} discards the clip group."
+msgstr ""
+
+#: .\flet_form.py:418
 msgid "DaVinci Resolve Studio is required"
 msgstr ""
 
-#: Comp\flet_form.py:420
+#: .\flet_form.py:422
 msgid "This form renders videos with DaVinci Resolve Studio. Install it, open it with a project loaded and press Render again."
 msgstr ""
 
-#: Comp\flet_form.py:423
+#: .\flet_form.py:425
 msgid "If you already have it installed, check Preferences > System > General to allow access from external applications."
 msgstr ""
 
-#: Comp\flet_form.py:428
+#: .\flet_form.py:430
 msgid "Scripting API documentation"
 msgstr ""
 
-#: Comp\flet_form.py:430
+#: .\flet_form.py:432
 msgid "Official DaVinci Resolve website"
 msgstr ""
 
-#: Comp\flet_form.py:438
+#: .\flet_form.py:440
 msgid "Got it"
 msgstr ""
 
-#: Comp\flet_form.py:502
+#: .\flet_form.py:504
 msgid "Could not read DaVinci Resolve: %s"
 msgstr ""
 
-#: Comp\flet_form.py:502
+#: .\flet_form.py:504
 msgid "no connection"
 msgstr ""
 
-#: Comp\flet_form.py:510 Comp\flet_form.py:539 Comp\flet_form.py:715
-#: Comp\flet_form.py:758
+#: .\flet_form.py:512 .\flet_form.py:541 .\flet_form.py:717 .\flet_form.py:760
 msgid "frames"
 msgstr ""
 
-#: Comp\flet_form.py:511
+#: .\flet_form.py:513
 msgid "No clips"
 msgstr ""
 
-#: Comp\flet_form.py:529 Comp\flet_form.py:663
+#: .\flet_form.py:531 .\flet_form.py:665
 msgid "Change thumbnail"
 msgstr ""
 
-#: Comp\flet_form.py:536
+#: .\flet_form.py:538
 msgid "Click to change the title"
 msgstr ""
 
-#: Comp\flet_form.py:550 Comp\flet_form.py:757
+#: .\flet_form.py:552 .\flet_form.py:759
 msgid "Render properties"
 msgstr ""
 
-#: Comp\flet_form.py:552
+#: .\flet_form.py:554
 msgid "Discard this clip group"
 msgstr ""
 
-#: Comp\flet_form.py:592
+#: .\flet_form.py:594
 msgid "%s removed from the render."
 msgstr ""
 
-#: Comp\flet_form.py:592 Comp\flet_form.py:659
+#: .\flet_form.py:594 .\flet_form.py:661
 msgid "Undo"
 msgstr ""
 
-#: Comp\flet_form.py:598
+#: .\flet_form.py:600
 msgid "No file selected"
 msgstr ""
 
-#: Comp\flet_form.py:609
+#: .\flet_form.py:611
 msgid "No image"
 msgstr ""
 
-#: Comp\flet_form.py:613
+#: .\flet_form.py:615
 msgid "Apply to all clips (%s)"
 msgstr ""
 
-#: Comp\flet_form.py:625
+#: .\flet_form.py:627
 msgid "The file must be an image."
 msgstr ""
 
-#: Comp\flet_form.py:627
+#: .\flet_form.py:629
 msgid "The image is too large (2 MB maximum)."
 msgstr ""
 
-#: Comp\flet_form.py:638
+#: .\flet_form.py:640
 msgid "Choose an image before applying the changes."
 msgstr ""
 
-#: Comp\flet_form.py:657
+#: .\flet_form.py:659
 msgid "Thumbnail applied to %(count)d clips."
 msgstr ""
 
-#: Comp\flet_form.py:658
+#: .\flet_form.py:660
 msgid "Thumbnail updated."
 msgstr ""
 
-#: Comp\flet_form.py:667
+#: .\flet_form.py:669
 msgid "Current"
 msgstr ""
 
-#: Comp\flet_form.py:668
+#: .\flet_form.py:670
 msgid "New"
 msgstr ""
 
-#: Comp\flet_form.py:670
+#: .\flet_form.py:672
 msgid "Choose image…"
 msgstr ""
 
-#: Comp\flet_form.py:672
+#: .\flet_form.py:674
 msgid "YouTube requires at least 1280×720 px and a maximum of 2 MB."
 msgstr ""
 
-#: Comp\flet_form.py:679 Comp\flet_form.py:765
+#: .\flet_form.py:681 .\flet_form.py:767
 msgid "Cancel"
 msgstr ""
 
-#: Comp\flet_form.py:680
+#: .\flet_form.py:682
 msgid "Apply"
 msgstr ""
 
-#: Comp\flet_form.py:686
+#: .\flet_form.py:688
 msgid "File name"
 msgstr ""
 
-#: Comp\flet_form.py:688
+#: .\flet_form.py:690
 msgid "Width (px)"
 msgstr ""
 
-#: Comp\flet_form.py:690
+#: .\flet_form.py:692
 msgid "Height (px)"
 msgstr ""
 
-#: Comp\flet_form.py:692
+#: .\flet_form.py:694
 msgid "Destination folder"
 msgstr ""
 
-#: Comp\flet_form.py:693
+#: .\flet_form.py:695
 msgid "Render the entire clip"
 msgstr ""
 
-#: Comp\flet_form.py:694
+#: .\flet_form.py:696
 msgid "Start frame"
 msgstr ""
 
-#: Comp\flet_form.py:696
+#: .\flet_form.py:698
 msgid "End frame"
 msgstr ""
 
-#: Comp\flet_form.py:698
+#: .\flet_form.py:700
 msgid "Export video"
 msgstr ""
 
-#: Comp\flet_form.py:699
+#: .\flet_form.py:701
 msgid "Export audio"
 msgstr ""
 
-#: Comp\flet_form.py:711
+#: .\flet_form.py:713
 msgid "The entire clip will be rendered, without in/out marks."
 msgstr ""
 
-#: Comp\flet_form.py:714
+#: .\flet_form.py:716
 msgid "Duration: %(frames)d %(unit)s"
 msgstr ""
 
-#: Comp\flet_form.py:717
+#: .\flet_form.py:719
 msgid "The end frame must be greater than the start frame."
 msgstr ""
 
-#: Comp\flet_form.py:732
+#: .\flet_form.py:734
 msgid "Required"
 msgstr ""
 
-#: Comp\flet_form.py:734 Comp\flet_form.py:736
+#: .\flet_form.py:736 .\flet_form.py:738
 msgid "Minimum 2"
 msgstr ""
 
-#: Comp\flet_form.py:738
+#: .\flet_form.py:740
 msgid "Must be greater than the start frame"
 msgstr ""
 
-#: Comp\flet_form.py:766
+#: .\flet_form.py:768
 msgid "Save changes"
 msgstr ""
 
-#: Comp\flet_form.py:780
+#: .\flet_form.py:782
 msgid "There are no clips to render."
 msgstr ""
 
-#: Comp\flet_form.py:790
+#: .\flet_form.py:792
 msgid "Could not save preferences: %s"
 msgstr ""
 
-#: Comp\flet_form.py:795
+#: .\flet_form.py:797
 msgid "Language"
 msgstr ""
 
-#: Comp\flet_form.py:795
+#: .\flet_form.py:797
 msgid "Own session"
 msgstr ""
 
-#: Comp\flet_form.py:796
+#: .\flet_form.py:798
 msgid "Notes:"
 msgstr ""
 
-#: Comp\flet_form.py:800
+#: .\flet_form.py:802
 msgid "Rendering…"
 msgstr ""
 
-#: Comp\flet_form.py:801
+#: .\flet_form.py:803
 msgid "Waiting for DaVinci Resolve…"
 msgstr ""
 
-#: Comp\flet_form.py:834
+#: .\flet_form.py:836
 msgid "All done!"
 msgstr ""
 
-#: Comp\flet_form.py:834
+#: .\flet_form.py:836
 msgid "Finished with warnings"
 msgstr ""
 
-#: Comp\flet_form.py:835
+#: .\flet_form.py:837
 msgid "The render jobs have finished in DaVinci Resolve."
 msgstr ""
 
-#: Comp\flet_form.py:837
+#: .\flet_form.py:839
 msgid "Close app"
 msgstr ""
 
-#: Comp\flet_form.py:838
+#: .\flet_form.py:840
 msgid "Render another"
 msgstr ""
 
-#: Comp\flet_form.py:844
+#: .\flet_form.py:846
 msgid "Back"
 msgstr ""
 
-#: Comp\flet_form.py:845
+#: .\flet_form.py:847
 msgid "Next"
 msgstr ""
 
-#: Comp\flet_form.py:846
+#: .\flet_form.py:848
 msgid "Render"
 msgstr ""
 
-#: Comp\flet_form.py:852 Comp\flet_form.py:853
+#: .\flet_form.py:854 .\flet_form.py:855
 msgid "Choose an option"
 msgstr ""
 
-#: Comp\flet_form.py:875
+#: .\flet_form.py:877
 msgid "Step %d of %d"
 msgstr ""
 
-#: Comp\flet_form.py:896 Comp\flet_form.py:902
+#: .\flet_form.py:898 .\flet_form.py:904
 msgid "Switch to dark mode"
 msgstr ""
 
-#: Comp\flet_form.py:902
+#: .\flet_form.py:904
 msgid "Switch to light mode"
 msgstr ""
 
-#: Comp\flet_form.py:921 Comp\flet_form.py:931
+#: .\flet_form.py:923 .\flet_form.py:933
 msgid "Form to simplify %s."
 msgstr ""
 
