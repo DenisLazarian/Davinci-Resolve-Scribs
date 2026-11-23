@@ -1005,7 +1005,9 @@ async def main(page: ft.Page):
 
     aplicar_config(cargar_config())
     mostrar_paso(0)
-    await cargar_clips()
+    # No esperes a Resolve aqui: si el scripting esta ocupado, main() no termina
+    # y Flet no pinta la ventana (sale en blanco). Carga los clips en segundo plano.
+    asyncio.create_task(cargar_clips())
 
 
 if __name__ == "__main__":
