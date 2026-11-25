@@ -29,7 +29,7 @@ settings = {
     "FormatHeight": 1080
 }
 
-allowed_time_separation, min_duration_frames = 5, 5  # segundos
+allowed_time_separation, min_duration_frames = 5, 90*60  # segundos
 
 # if resolve is None:
 #     print("Could not connect to DaVinci Resolve")
@@ -229,7 +229,7 @@ def establish_title(title) -> str:
     patron = re.compile(
         r"^\d{4}(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])([01]\d|2[0-3])[0-5]\d[0-5]\d\.[A-Za-z0-9]+$"
     )
-    if patron.fullmatch(title) is None:
+    if patron.fullmatch(title.strip()) is None:
         print(f"The title '{title}' does not match the expected format.")
         return title
     
