@@ -661,6 +661,7 @@ def upload_video(
             _abrir_dialogo_subida(page)
 
             _log(f"Uploading file: {ruta}")
+            time.sleep(2)
             page.locator('input[name="Filedata"], input[type="file"]').first.set_input_files(str(ruta))
 
             # Esperar el formulario de detalles del vídeo.
@@ -713,22 +714,22 @@ def upload_video(
     return video_id
 
 
-# if __name__ == "__main__":
-#     try:
-#         id_subido = upload_video(
-#             ruta_video="..\\prueba2.mp4",
-#             titulo="Título de prueba desde Python 1",
-#             descripcion="Descripción de prueba.\n\nSegunda línea de la descripción.",
-#             visibilidad="PRIVATE",
-#         )
-#         id_subido = upload_video(
-#             ruta_video="..\\prueba2.mp4",
-#             titulo="Título de prueba desde Python 2",
-#             descripcion="Descripción de prueba.\n\nSegunda línea de la descripción.",
-#             visibilidad="PRIVATE",
-#         )
-#         # print(f"\nYou can use this ID in the rest of your program: {id_subido}")
-#         # print(f"Link: https://youtu.be/{id_subido}")
-#     except Exception as exc:
-#         print(f"\n❌ Error: {exc}")
-#         sys.exit(1)
+if __name__ == "__main__":
+    try:
+        id_subido = upload_video(
+            ruta_video="..\\prueba2.mp4",
+            titulo="Título de prueba desde Python 1",
+            descripcion="Descripción de prueba.\n\nSegunda línea de la descripción.",
+            visibilidad="UNLISTED",
+        )
+        # id_subido = upload_video(
+        #     ruta_video="..\\prueba2.mp4",
+        #     titulo="Título de prueba desde Python 2",
+        #     descripcion="Descripción de prueba.\n\nSegunda línea de la descripción.",
+        #     visibilidad="PRIVATE",
+        # )
+        print(f"\nYou can use this ID in the rest of your program: {id_subido}")
+        print(f"Link: https://youtu.be/{id_subido}")
+    except Exception as exc:
+        print(f"\n❌ Error: {exc}")
+        sys.exit(1)
